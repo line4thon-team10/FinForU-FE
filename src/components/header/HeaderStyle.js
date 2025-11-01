@@ -2,6 +2,7 @@ import styled from "styled-components";
 
 export const Container = styled.div`
   width: 100%;
+  max-width: 393px;
   height: 3.5625rem;
   display: flex;
   justify-content: space-between;
@@ -9,6 +10,11 @@ export const Container = styled.div`
   padding: 1.0313rem 1.25rem;
   border-bottom: 1px solid #dadada;
   background: #fff;
+  position: fixed;
+  top: 0;
+  right: max(calc(50vw - 393px / 2), 0px);
+  left: auto;
+  z-index: 100;
 `;
 
 export const Title = styled.div`
