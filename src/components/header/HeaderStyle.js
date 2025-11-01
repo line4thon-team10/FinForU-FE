@@ -8,7 +8,7 @@ export const Container = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 1.0313rem 1.25rem;
-  border-bottom: 1px solid #dadada;
+  border-bottom: 1px solid var(--color-secondary-gray);
   background: #fff;
   position: fixed;
   top: 0;
@@ -27,14 +27,16 @@ export const BtnWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  width: ${({ $isBack }) => ($isBack ? "1.875rem" : "1.25rem")};
-  height: ${({ $isBack }) => ($isBack ? "1.875rem" : "1.25rem")};
+
+  &,
+  & > button {
+    width: ${({ $isBack }) => ($isBack ? "1.875rem" : "1.25rem")};
+    height: ${({ $isBack }) => ($isBack ? "1.875rem" : "1.25rem")};
+  }
 `;
 
 export const Button = styled.button`
   display: flex;
   justify-content: center;
   align-items: center;
-  width: ${({ $isBack }) => ($isBack ? "1.875rem" : "1.25rem")};
-  height: ${({ $isBack }) => ($isBack ? "1.875rem" : "1.25rem")};
 `;
