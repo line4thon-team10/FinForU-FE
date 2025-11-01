@@ -1,5 +1,5 @@
 import RootLayout from "./layouts/RootLayout";
-import { GlobalStyle } from "./styles/GlobalStyle";
+import GlobalStyle from "./styles/GlobalStyle";
 
 function App() {
   return (
