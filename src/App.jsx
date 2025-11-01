@@ -1,9 +1,10 @@
 import { Route, Routes } from "react-router-dom";
 import { EmptyLayout, HeaderLayout, HeaderNavLayout } from "./layouts/Layout";
 import RootLayout from "./layouts/RootLayout";
-import GlobalStyle from "./styles/GlobalStyle";
+import { GlobalStyle } from "./styles/GlobalStyle";
 import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
+import Guide from "./pages/Guide/Guide";
 
 function App() {
   return (
