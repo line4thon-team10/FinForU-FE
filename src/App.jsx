@@ -1,5 +1,12 @@
+import RootLayout from "./layouts/RootLayout";
+import { GlobalStyle } from "./styles/GlobalStyle";
+
 function App() {
-  return <div>FinForU 프론트엔드 레포지토리</div>;
+  return (
+    <RootLayout>
+      <GlobalStyle />
+    </RootLayout>
+  );
 }
 
 export default App;
