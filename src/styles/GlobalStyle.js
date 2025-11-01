@@ -1,6 +1,12 @@
 import { createGlobalStyle } from "styled-components";
 
 export const GlobalStyle = createGlobalStyle`
+  :root {
+    --color-primary-gray: #b1b1b1;
+    --color-secondary-gray: #dadada;
+    --color-primary: #0093DD;
+  }
+
   html, body {
     box-sizing: border-box;
     width: 100%;
