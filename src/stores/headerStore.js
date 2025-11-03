@@ -16,7 +16,7 @@ const DEFAULT_HEADER_CONFIG = {
 //     showBackBtn: false, // 뒤로가기 버튼 여부
 //     showSettingBtn: false, // 환경설정 버튼 여부
 //   });
-// }, [setHeaderConfig]);
+// }, [setHeaderConfig, i18n.language]);
 export const useHeaderStore = create((set) => ({
   headerConfig: DEFAULT_HEADER_CONFIG,
   setHeaderConfig: (newConfig) =>

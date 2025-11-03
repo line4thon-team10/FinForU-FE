@@ -5,7 +5,7 @@ export const Container = styled.div`
   max-width: 393px;
   height: 6.75rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   gap: 2.1875rem;
   background: #fff;
@@ -19,21 +19,28 @@ export const Container = styled.div`
 `;
 
 export const Button = styled.button`
+  width: 2.1875rem;
   height: 90%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
+  gap: 0.3125rem;
+
+  & > svg {
+    flex-shrink: 0;
+  }
 
   & > div {
     color: var(--color-primary-gray);
     text-align: center;
     font-size: 0.8125rem;
     font-weight: 500;
+    white-space: nowrap;
   }
 
   & > svg,
-  div {
+  & > div {
     color: ${({ $isActive }) => ($isActive ? "var(--color-primary)" : "var(--color-primary-gray)")};
   }
 `;
