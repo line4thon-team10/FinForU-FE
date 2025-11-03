@@ -20,6 +20,31 @@ export const GlobalStyle = createGlobalStyle`
   *::before,
   *::after {
     box-sizing: inherit;
+
+    /* 현재 언어 중국어일 때만 중국어 지원 폰트 우선으로 */
+    font-family: 
+      ${({ currentLang }) =>
+        currentLang === "zh"
+          ? `
+            "Noto Sans SC", 
+            "Pretendard Variable",
+            "PingFang SC",
+            "Microsoft YaHei",
+            sans-serif
+            `
+          : `
+            "Pretendard Variable", 
+            "Noto Sans SC",        
+            -apple-system, 
+            BlinkMacSystemFont, 
+            system-ui, 
+            Roboto, 
+            "Helvetica Neue", 
+            "Segoe UI", 
+            "Apple SD Gothic Neo",
+            "Malgun Gothic",
+            sans-serif
+            `};
   }
 
   ol, ul {
