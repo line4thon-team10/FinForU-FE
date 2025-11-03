@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next";
-import Navigation from "../../components/navigation/Navigation";
 import { useHeaderStore } from "../../stores/headerStore";
 import { useEffect } from "react";
 
@@ -19,7 +18,6 @@ export default function Guide() {
   return (
     <>
       <div style={{ marginTop: "3.5625rem" }}>금융 가이드 페이지</div>
-      <Navigation />
     </>
   );
 }
