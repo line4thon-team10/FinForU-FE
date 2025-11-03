@@ -8,6 +8,9 @@
   font-display: swap;
 }
 
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@100..900&display=swap");
+
+/* 렌더링 될 때도 pretendard로 보이도록 정적 경로에는 남겨둠 */
 *,
 *::before,
 *::after {
