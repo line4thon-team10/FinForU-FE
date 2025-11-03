@@ -18,8 +18,8 @@ i18next.use(initReactI18next).init({
   },
   // 기본 언어 설정 : en
   lng: "en",
-  // react-i18next 처리 로그 콘솔 출력 설정
-  debug: true,
+  // react-i18next 처리 로그 콘솔 출력 설정 ==> 거슬려서 false로 변경
+  debug: false,
   // 동적인 데이터 값 할당 설정
   interpolation: {
     escapeValue: false, // react는 XSS에 안전하기 때문에 false로 설정
