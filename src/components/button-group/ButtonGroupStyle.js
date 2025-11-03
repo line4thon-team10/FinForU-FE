@@ -5,7 +5,7 @@ export const Wrapper = styled.div`
   max-width: 393px;
   background-color: #fff;
   display: flex;
-  gap: 3.125rem;
+  gap: 2.75rem;
   justify-content: center;
   align-items: center;
   position: fixed;
@@ -16,6 +16,7 @@ export const Wrapper = styled.div`
   padding: 2.5rem 0;
 
   & > button {
+    width: 7.9375rem;
     color: #fff;
     display: flex;
     justify-content: center;
@@ -26,6 +27,7 @@ export const Wrapper = styled.div`
     font-size: 1.125rem;
     font-weight: 600;
     border-radius: 0.625rem;
+    white-space: nowrap;
   }
 `;
 
