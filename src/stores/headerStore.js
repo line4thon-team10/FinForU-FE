@@ -8,7 +8,7 @@ const DEFAULT_HEADER_CONFIG = {
 };
 
 // 사용할 땐 아래와 같이
-// import { useHeaderStore } from "../../stores/headerStore";
+// const { i18n } = useTranslation();
 // const setHeaderConfig = useHeaderStore((state) => state.setHeaderConfig);
 // useEffect(() => {
 //   setHeaderConfig({
