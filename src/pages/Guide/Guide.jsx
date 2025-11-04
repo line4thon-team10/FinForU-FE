@@ -41,7 +41,7 @@ export default function Guide() {
   // AI 응답 생성
   const generateAIResponse = (question) => {
     setIsLoading(true);
-    
+
     // 디자인 확인용 임시 응답
     setTimeout(() => {
       const response = "This is a sample AI response.";
@@ -59,14 +59,14 @@ export default function Guide() {
   const handleSendMessage = (text = null, fromFAQ = false) => {
     // 로딩 중이면 새 질문 불가
     if (isLoading) return;
-    
+
     const messageText = text || inputValue.trim();
-    
+
     if (!messageText) return;
 
     // 사용자 메시지 추가
     setMessages((prev) => [...prev, { type: "user", text: messageText }]);
-    
+
     // 입력창 초기화
     if (!fromFAQ) {
       setInputValue("");
@@ -91,23 +91,21 @@ export default function Guide() {
       <S.Container>
         <S.ChatArea ref={chatAreaRef}>
           <S.WelcomeMessage>{t("guide.greeting")}</S.WelcomeMessage>
-          
+
           {messages.length > 0 && (
             <S.MessageList>
-              {messages.map((msg, index) => (
+              {messages.map((msg, index) =>
                 msg.type === "user" ? (
                   <S.UserMessage key={index}>{msg.text}</S.UserMessage>
                 ) : (
                   <S.AIMessage key={index}>{msg.text}</S.AIMessage>
                 )
-              ))}
-              {isLoading && (
-                <S.LoadingMessage>{t("guide.loading")}</S.LoadingMessage>
               )}
+              {isLoading && <S.LoadingMessage>{t("guide.loading")}</S.LoadingMessage>}
               <div ref={messageEndRef} />
             </S.MessageList>
           )}
-          
+
           {isLoading && messages.length === 0 && (
             <S.LoadingMessage>{t("guide.loading")}</S.LoadingMessage>
           )}
@@ -156,7 +154,6 @@ export default function Guide() {
           </S.SendButton>
         </S.InputSection>
       </S.Container>
-      <Navigation />
     </>
   );
 }
