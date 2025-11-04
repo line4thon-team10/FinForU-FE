@@ -6,6 +6,7 @@ export const GlobalStyle = createGlobalStyle`
     --color-secondary-gray: #dadada;
     --color-tertiary-gray: #d6d6d6;
     --color-primary: #0093DD;
+    --color-secondary: #009CEA;
   }
 
   html, body {
