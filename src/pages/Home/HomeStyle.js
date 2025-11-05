@@ -7,7 +7,7 @@ export const Container = styled.div`
   justify-content: space-around;
   align-items: center;
   flex-direction: column;
-  padding: 15% 2.6875rem 25%;
+  padding: 15% 2.5rem 25%;
 
   @media screen and (max-height: 768px) {
     height: 100%;
