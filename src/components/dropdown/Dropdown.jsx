@@ -18,7 +18,7 @@ export default function Dropdown({
   topRightRadius = false,
 }) {
   const { t } = useTranslation();
-  const [isItemVisible, setIsItemVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [selectedValue, setSelectedValue] = useState(t("pleaseSelect")); // ui에 보여질 값
   const [inputValue, setInputValue] = useState(""); // 실제 hidden input에 들어갈 값
 
@@ -38,12 +38,12 @@ export default function Dropdown({
     }
     setSelectedValue(newSelectedValue);
     setInputValue(newInputValue);
-    setIsItemVisible(false);
+    setIsVisible(false);
   };
 
   return (
     <S.Container
-      onClick={() => setIsItemVisible(!isItemVisible)}
+      onClick={() => setIsVisible(!isVisible)}
       $selected={selectedValue !== t("pleaseSelect")}
     >
       {/* 실제 값은 이 input에 */}
@@ -63,9 +63,9 @@ export default function Dropdown({
           />
         </svg>
       </S.Content>
-      {isItemVisible && (
+      {isVisible && (
         <>
-          <S.Overlay onClick={() => setIsItemVisible(false)} />
+          <S.Overlay onClick={() => setIsVisible(false)} />
           <S.OptionBox $topLeftRadius={topLeftRadius} $topRightRadius={topRightRadius}>
             {itemArray.map((item, index) => {
               const isObject = typeof item === "object" && item !== null;
