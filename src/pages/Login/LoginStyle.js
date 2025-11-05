@@ -68,12 +68,14 @@ export const EmailInput = styled.input`
   border-radius: 0.625rem 0.625rem 0 0;
   border: 2px solid var(--color-input-gray);
   border-bottom: 1px solid var(--color-input-gray);
+  outline: none;
 `;
 
 export const PWInput = styled.input`
   border-radius: 0 0 0.625rem 0.625rem;
   border: 2px solid var(--color-input-gray);
   border-top: 1px solid var(--color-input-gray);
+  outline: none;
 `;
 
 export const Btn = styled.button`
