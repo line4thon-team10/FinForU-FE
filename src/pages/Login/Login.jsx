@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import ButtonGroup from "../../components/button-group/ButtonGroup";
 import { useTranslation } from "react-i18next";
 import { useHeaderStore } from "../../stores/headerStore";
 import { useEffect, useState } from "react";
 import * as S from "./LoginStyle";
+import axios from "axios";
 
 // .env.local에 서버 배포 주소를 API_URL로 저장한다고 간주
 const API_URL = import.meta.env.VITE_API_URL;
