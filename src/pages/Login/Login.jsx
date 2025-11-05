@@ -3,10 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useHeaderStore } from "../../stores/headerStore";
 import { useEffect, useState } from "react";
 import * as S from "./LoginStyle";
-import axios from "axios";
-
-// .env.local에 서버 배포 주소를 API_URL로 저장한다고 간주
-const API_URL = import.meta.env.VITE_API_URL;
+import api from "../../api/api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -38,19 +35,23 @@ export default function Login() {
       return;
     }
 
-    const loginEndpoint = `${API_URL}/api/member/login`;
     const loginData = {
       email: email,
       password: password,
     };
 
     try {
-      const res = await axios.post(loginEndpoint, loginData, {
+      const res = await api.post("/api/members/login", loginData, {
         withCredentials: true,
       });
 
       // 로그인 성공
       if (res.status === 200) {
+        const userLang = res.data.member.language;
+        if (userLang && userLang !== i18n.language) {
+          // 유저가 설정한 언어로 언어 설정 업데이트
+          i18n.changeLanguage(userLang);
+        }
         navigate("/guide");
       }
     } catch (error) {
