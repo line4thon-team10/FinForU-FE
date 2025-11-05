@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
 import Guide from "./pages/Guide/Guide";
+import Join from "./pages/Join/Join";
 
 function App() {
   const { i18n } = useTranslation();
@@ -22,6 +23,7 @@ function App() {
         {/* header만 있는 레이아웃 */}
         <Route element={<HeaderLayout />}>
           <Route path="/login" element={<Login />} />
+          <Route path="/join" element={<Join />} />
         </Route>
         {/* header와 navigation이 둘 다 있는 레이아웃 */}
         <Route element={<HeaderNavLayout />}>

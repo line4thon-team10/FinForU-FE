@@ -5,8 +5,9 @@ export const GlobalStyle = createGlobalStyle`
     --color-primary-gray: #b1b1b1;
     --color-secondary-gray: #dadada;
     --color-tertiary-gray: #d6d6d6;
-    --color-primary: #0093DD;
-    --color-secondary: #009CEA;
+    --color-input-gray: #b3b3b3;
+    --color-primary: #0093dd;
+    --color-secondary: #009cea;
   }
 
   html, body {
