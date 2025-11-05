@@ -4,6 +4,7 @@ import { useHeaderStore } from "../../stores/headerStore";
 import { useEffect, useState } from "react";
 import * as S from "./LoginStyle";
 import api from "../../api/api";
+import { LANGUAGE_MAP } from "../../constants/languageMap";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ export default function Login() {
 
       // 로그인 성공
       if (res.status === 200) {
-        const userLang = res.data.member.language;
+        const userLang = LANGUAGE_MAP[res.data.member.language] || res.data.member.language;
         if (userLang && userLang !== i18n.language) {
           // 유저가 설정한 언어로 언어 설정 업데이트
           i18n.changeLanguage(userLang);
