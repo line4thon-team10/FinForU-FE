@@ -13,7 +13,7 @@ export const Wrapper = styled.div`
   right: max(calc(50vw - 393px / 2), 0px);
   left: auto;
   z-index: 100;
-  padding: 2.5rem 0;
+  padding: 1rem 0 2.5rem;
 
   & > button {
     width: 7.9375rem;
