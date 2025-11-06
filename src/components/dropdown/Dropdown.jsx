@@ -5,31 +5,35 @@ import { useTranslation } from "react-i18next";
 /**
  * 커스텀 드롭다운 컴포넌트 - 두 줄짜리 항목 및 좌/우측 상단 Radius도 대응
  * @param {object} props
- * @param {string} props.name - 숨겨진 input의 name 속성 - 폼 제출 시 사용
- * @param {(string | { main: string, sub: string })[]} props.itemArray - 드롭다운에 표시될 항목들의 배열
- * * 한 줄 항목은 문자열만, 두 줄 항목은 main과 sub 키를 가진 객체로 이루어진 배열 넘기기
+ * @param {{ value: string, label: string }} props.name - 숨겨진 input의 name 속성
+ * * value는 실제 input의 id, name으로 들어가며 label은 다국어 처리를 한 텍스트
+ * @param {({ value: string, main: string, sub: string } | { value: string, label: string })[]} props.itemArray - 항목 배열
+ * * 실제 서버에서 전송할 값을 value, 다국어 처리를 한 텍스트를 label에 넘깁니다.
+ * * 한 줄 항목은 { value: string, label: string } 객체로 넘겨야 합니다.
+ * * 두 줄 항목은 { value: string, main: string, sub: string } 형태로 넘깁니다.
  */
 export default function Dropdown({ name, itemArray }) {
   const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
-  const [selectedValue, setSelectedValue] = useState(t("pleaseSelect")); // ui에 보여질 값
-  const [inputValue, setInputValue] = useState(""); // 실제 hidden input에 들어갈 값
+  const [selectedLabel, setSelectedLabel] = useState(t("pleaseSelect")); // ui에 보여질 값 = label
+  const [inputValue, setInputValue] = useState(""); // 실제 hidden input에 들어갈 값 = value
 
   const handleSelect = (item) => {
-    // 두 줄인 경우 -> 비자 타입 선택
-    const isObject = typeof item === "object" && item !== null;
-
-    let newSelectedValue;
+    let newSelectedLabel;
     let newInputValue;
-    if (isObject) {
-      // 객체 항목 (두 줄) 일 경우
-      newSelectedValue = item.main || item;
-      newInputValue = item.main || item;
+
+    // 한 줄이든 두 줄이든 값은 항상 value 키의 값
+    newInputValue = item.value;
+
+    if (item.main) {
+      // 두 줄일 경우
+      newSelectedLabel = item.main || item.label;
     } else {
-      newSelectedValue = item;
-      newInputValue = item;
+      // 한 줄일 경우 (대부분의 경우)
+      newSelectedLabel = item.label;
     }
-    setSelectedValue(newSelectedValue);
+
+    setSelectedLabel(newSelectedLabel);
     setInputValue(newInputValue);
     setIsVisible(false);
   };
@@ -37,12 +41,12 @@ export default function Dropdown({ name, itemArray }) {
   return (
     <S.Container
       onClick={() => setIsVisible(!isVisible)}
-      $selected={selectedValue !== t("pleaseSelect")}
+      $selected={selectedLabel !== t("pleaseSelect")}
     >
       {/* 실제 값은 이 input에 */}
       <input type="hidden" id={name} name={name} value={inputValue} />
       <S.Content>
-        <div>{selectedValue}</div>
+        <div>{selectedLabel}</div>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="21"
@@ -61,11 +65,9 @@ export default function Dropdown({ name, itemArray }) {
           <S.Overlay onClick={() => setIsVisible(false)} />
           <S.OptionBox>
             {itemArray.map((item, index) => {
-              const isObject = typeof item === "object" && item !== null;
-
-              // 객체일 경우 main/sub 키를 사용하고, 문자열일 경우 전체를 main으로 사용
-              const mainText = isObject ? item.main : item;
-              const subText = isObject ? item.sub : null;
+              // 두 줄일 경우 main/sub 키를 사용하고, 한 줄일 경우 전체를 label로 사용
+              const mainText = item.main ? item.main : item.label;
+              const subText = item.main ? item.sub : null;
               // subText가 존재할 때만 두 줄 렌더링
               const isTwoLines = !!subText;
               return (
