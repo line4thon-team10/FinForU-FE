@@ -11,7 +11,9 @@ export default function Home() {
     i18n: { language: lang },
   } = useTranslation();
   const navigate = useNavigate();
-  const [isVisible, setIsVisible] = useState(false);
+  // 이미 언어가 선택되어 있는지 여부 -> 바로 하단 버튼 보이도록
+  const isLanguageSelected = lang && (lang === "en" || lang === "zh" || lang === "vi");
+  const [isVisible, setIsVisible] = useState(isLanguageSelected);
 
   const handleChange = (event) => {
     i18n.changeLanguage(event.target.value);
