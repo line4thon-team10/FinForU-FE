@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import * as S from "./DropdownStyle";
 import { useTranslation } from "react-i18next";
 
@@ -11,40 +11,48 @@ import { useTranslation } from "react-i18next";
  * * 실제 서버에서 전송할 값을 value, 다국어 처리를 한 텍스트를 label에 넘깁니다.
  * * 한 줄 항목은 { value: string, label: string } 객체로 넘겨야 합니다.
  * * 두 줄 항목은 { value: string, main: string, sub: string } 형태로 넘깁니다.
+ * @param {function(string, string): void} props.onSelect - 항목 선택 시 호출될 콜백 함수 (name.value, item.value)
+ * @param {string} props.selectedValue - 부모 컴포넌트에서 전달된 현재 선택된 값
  */
-export default function Dropdown({ name, itemArray }) {
-  const { t } = useTranslation();
+export default function Dropdown({ name, itemArray, onSelect, selectedValue }) {
+  const { t, i18n } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState(t("pleaseSelect")); // ui에 보여질 값 = label
-  const [inputValue, setInputValue] = useState(""); // 실제 hidden input에 들어갈 값 = value
+  // ui 수정하는 코드 -> label만 관리
+  useEffect(() => {
+    const selectedItem = itemArray.find((item) => item.value === selectedValue);
+    let newLabel;
 
-  const handleSelect = (item) => {
-    let newSelectedLabel;
-    let newInputValue;
-
-    // 한 줄이든 두 줄이든 값은 항상 value 키의 값
-    newInputValue = item.value;
-
-    if (item.main) {
-      // 두 줄일 경우
-      newSelectedLabel = item.main || item.label;
+    if (selectedItem) {
+      if (selectedItem.main) {
+        newLabel = selectedItem.main;
+      } else {
+        newLabel = selectedItem.label;
+      }
     } else {
-      // 한 줄일 경우 (대부분의 경우)
-      newSelectedLabel = item.label;
+      newLabel = t("pleaseSelect");
     }
+    if (selectedLabel !== newLabel) {
+      setSelectedLabel(newLabel);
+    }
+  }, [selectedValue, itemArray, i18n.language, selectedLabel, t]);
 
-    setSelectedLabel(newSelectedLabel);
-    setInputValue(newInputValue);
-    setIsVisible(false);
-  };
+  const handleSelect = useCallback(
+    (item) => {
+      const newInputValue = item.value;
+
+      // 부모 컴포넌트로 값 전달
+      onSelect(name.value, newInputValue);
+      setIsVisible(false);
+    },
+    [onSelect, name.value]
+  );
 
   return (
     <S.Container
       onClick={() => setIsVisible(!isVisible)}
-      $selected={selectedLabel !== t("pleaseSelect")}
+      $selected={selectedValue && selectedValue !== ""}
     >
-      {/* 실제 값은 이 input에 */}
-      <input type="hidden" id={name} name={name} value={inputValue} />
       <S.Content>
         <div>{selectedLabel}</div>
         <svg
