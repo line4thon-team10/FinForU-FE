@@ -62,6 +62,21 @@ export default function Step2({ formData, updateFormData, isSubmitted }) {
     if (!formData.visaExpirationDate || !dateRegex.test(formData.visaExpirationDate)) {
       errors.visaExpirationDate = "Please enter a valid visa expiration date.";
       isValid = false;
+    } else {
+      // 유효한 진짜 날짜인지 검증
+      const parts = formData.visaExpirationDate.split("/");
+      const month = parseInt(parts[0], 10);
+      const day = parseInt(parts[1], 10);
+      const year = parseInt(parts[2], 10);
+      const dateObject = new Date(year, month - 1, day);
+      const dateIsValid =
+        !isNaN(dateObject.getTime()) &&
+        dateObject.getMonth() === month - 1 &&
+        dateObject.getDate() === day;
+      if (!dateIsValid) {
+        errors.visaExpirationDate = "The entered date is not a real date.";
+        isValid = false;
+      }
     }
 
     if (!formData.selectedProducts || formData.selectedProducts.length === 0) {

@@ -25,6 +25,7 @@ export const Container = styled.div`
   scrollbar-width: none;
   -ms-overflow-style: none;
   border-radius: 0.625rem;
+  max-height: 80vh;
 `;
 
 export const XBtn = styled.button`

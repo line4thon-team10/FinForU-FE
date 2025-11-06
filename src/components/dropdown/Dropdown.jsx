@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as S from "./DropdownStyle";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +16,11 @@ import { useTranslation } from "react-i18next";
  */
 export default function Dropdown({ name, itemArray, onSelect, selectedValue }) {
   const { t, i18n } = useTranslation();
+
+  // 자동 스크롤 구현
+  const containerRef = useRef(null);
+  const optionBoxRef = useRef(null);
+
   const [isVisible, setIsVisible] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState(t("pleaseSelect")); // ui에 보여질 값 = label
   // ui 수정하는 코드 -> label만 관리
@@ -48,8 +53,44 @@ export default function Dropdown({ name, itemArray, onSelect, selectedValue }) {
     [onSelect, name.value]
   );
 
+  // 드롭다운 열릴 때 자동 스크롤
+  useEffect(() => {
+    if (isVisible && containerRef.current && optionBoxRef.current) {
+      const dropdownContainer = containerRef.current;
+      const optionBox = optionBoxRef.current;
+      const timer = setTimeout(() => {
+        const optionRect = optionBox.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const isOffScreen = optionRect.bottom > viewportHeight || optionRect.top < 0;
+
+        if (isOffScreen) {
+          dropdownContainer.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }, 50);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible]);
+
+  // 드롭다운 열려있는 동안 스크롤 막기
+  useEffect(() => {
+    if (isVisible) {
+      document.body.classList.add("no-scroll");
+    } else {
+      document.body.classList.remove("no-scroll");
+    }
+
+    return () => {
+      document.body.classList.remove("no-scroll");
+    };
+  }, [isVisible]);
+
   return (
     <S.Container
+      ref={containerRef}
       onClick={() => setIsVisible(!isVisible)}
       $selected={selectedValue && selectedValue !== ""}
     >
@@ -71,7 +112,7 @@ export default function Dropdown({ name, itemArray, onSelect, selectedValue }) {
       {isVisible && (
         <>
           <S.Overlay onClick={() => setIsVisible(false)} />
-          <S.OptionBox>
+          <S.OptionBox ref={optionBoxRef}>
             {itemArray.map((item, index) => {
               // 두 줄일 경우 main/sub 키를 사용하고, 한 줄일 경우 전체를 label로 사용
               const mainText = item.main ? item.main : item.label;

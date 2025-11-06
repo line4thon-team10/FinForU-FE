@@ -111,6 +111,8 @@ export const AllCheckWrapper = styled.div`
   font-weight: 400;
   gap: 0.5rem;
   line-height: normal;
+  /* 클릭하면 배경 파래지는 거 수정 */
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
 `;
 
 export const ListWrapper = styled.div`
@@ -141,6 +143,8 @@ export const ListTitle = styled.div`
 `;
 
 export const CheckBtn = styled.button`
+  /* 클릭하면 배경 파래지는 거 수정 */
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
   svg path {
     fill: ${({ $checked }) => ($checked ? "var(--color-primary)" : "var(--color-input-gray)")};
   }
@@ -152,4 +156,6 @@ export const ViewBtn = styled.button`
   font-weight: 400;
   text-decoration-line: underline;
   white-space: nowrap;
+  /* 클릭하면 배경 파래지는 거 수정 */
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
 `;

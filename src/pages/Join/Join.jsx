@@ -72,9 +72,14 @@ export default function Join() {
     if (isCurrentStepValid) {
       setIsSubmitted(false);
       setStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
+      // 스크롤 최상단으로
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
     } else {
       // Step1, Step2에서 유효성 검사 실패 시 경고
-      alert("Please enter everything.");
+      alert("Please enter everything correctly.");
       return;
     }
   };

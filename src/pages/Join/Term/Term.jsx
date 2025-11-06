@@ -1,10 +1,25 @@
 import { useTranslation } from "react-i18next";
 import * as S from "./TermStyle";
 import ReactMarkdown from "react-markdown";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 export default function Term({ termValue, onClose }) {
   const { t } = useTranslation();
+  const isVisible = !!termValue;
+
+  // 모달 열려있는 동안 스크롤 막기
+  useEffect(() => {
+    if (isVisible) {
+      document.body.classList.add("no-scroll");
+    } else {
+      document.body.classList.remove("no-scroll");
+    }
+
+    return () => {
+      document.body.classList.remove("no-scroll");
+    };
+  }, [isVisible]);
+
   // 모달 오버레이 클릭 시 닫기
   const handleOverlayClick = useCallback(
     (e) => {
@@ -22,7 +37,9 @@ export default function Term({ termValue, onClose }) {
     },
     [onClose]
   );
+
   if (!termValue) return null;
+
   return (
     <S.Overlay onClick={handleOverlayClick}>
       <S.Container>
