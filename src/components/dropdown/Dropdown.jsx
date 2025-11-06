@@ -8,15 +8,8 @@ import { useTranslation } from "react-i18next";
  * @param {string} props.name - 숨겨진 input의 name 속성 - 폼 제출 시 사용
  * @param {(string | { main: string, sub: string })[]} props.itemArray - 드롭다운에 표시될 항목들의 배열
  * * 한 줄 항목은 문자열만, 두 줄 항목은 main과 sub 키를 가진 객체로 이루어진 배열 넘기기
- * @param {boolean} [props.topLeftRadius=false] - 드롭다운 좌측 상단 모서리 Radius 여부
- * @param {boolean} [props.topRightRadius=false] - 드롭다운 우측 상단 모서리 Radius 여부
  */
-export default function Dropdown({
-  name,
-  itemArray,
-  topLeftRadius = false,
-  topRightRadius = false,
-}) {
+export default function Dropdown({ name, itemArray }) {
   const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
   const [selectedValue, setSelectedValue] = useState(t("pleaseSelect")); // ui에 보여질 값
@@ -66,7 +59,7 @@ export default function Dropdown({
       {isVisible && (
         <>
           <S.Overlay onClick={() => setIsVisible(false)} />
-          <S.OptionBox $topLeftRadius={topLeftRadius} $topRightRadius={topRightRadius}>
+          <S.OptionBox>
             {itemArray.map((item, index) => {
               const isObject = typeof item === "object" && item !== null;
 

@@ -30,8 +30,6 @@ export const OptionBox = styled.div`
   background-color: #fff;
   border-radius: 0 0 0.625rem 0.625rem;
   z-index: 1001;
-  border-top-left-radius: ${({ $topLeftRadius }) => ($topLeftRadius ? "0.625rem" : "0")};
-  border-top-right-radius: ${({ $topRightRadius }) => ($topRightRadius ? "0.625rem" : "0")};
 `;
 
 export const ItemWrapper = styled.div`
