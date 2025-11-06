@@ -65,4 +65,9 @@ export const GlobalStyle = createGlobalStyle`
     border: none;
     background-color: transparent;
   }
+
+  /* 드롭다운 / 모달 창 열려있을 때 스크롤 막는 클래스 */
+  .no-scroll {
+  overflow: hidden; 
+}
 `;

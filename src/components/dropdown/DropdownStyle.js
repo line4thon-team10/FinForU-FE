@@ -12,6 +12,11 @@ export const Container = styled.div`
   font-weight: 400;
   color: ${({ $selected }) => ($selected ? "#000" : "var(--color-input-gray)")};
   cursor: pointer;
+  &,
+  & * {
+    /* 클릭하면 배경 파래지는 거 수정 */
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+  }
 `;
 
 export const Content = styled.div`
@@ -29,9 +34,7 @@ export const OptionBox = styled.div`
   background: none;
   background-color: #fff;
   border-radius: 0 0 0.625rem 0.625rem;
-  z-index: 1001;
-  border-top-left-radius: ${({ $topLeftRadius }) => ($topLeftRadius ? "0.625rem" : "0")};
-  border-top-right-radius: ${({ $topRightRadius }) => ($topRightRadius ? "0.625rem" : "0")};
+  z-index: 9999;
 `;
 
 export const ItemWrapper = styled.div`
@@ -69,5 +72,5 @@ export const Overlay = styled.div`
   width: 100vw;
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
+  z-index: 9998;
 `;

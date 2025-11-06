@@ -1,55 +1,101 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as S from "./DropdownStyle";
 import { useTranslation } from "react-i18next";
 
 /**
  * 커스텀 드롭다운 컴포넌트 - 두 줄짜리 항목 및 좌/우측 상단 Radius도 대응
  * @param {object} props
- * @param {string} props.name - 숨겨진 input의 name 속성 - 폼 제출 시 사용
- * @param {(string | { main: string, sub: string })[]} props.itemArray - 드롭다운에 표시될 항목들의 배열
- * * 한 줄 항목은 문자열만, 두 줄 항목은 main과 sub 키를 가진 객체로 이루어진 배열 넘기기
- * @param {boolean} [props.topLeftRadius=false] - 드롭다운 좌측 상단 모서리 Radius 여부
- * @param {boolean} [props.topRightRadius=false] - 드롭다운 우측 상단 모서리 Radius 여부
+ * @param {{ value: string, label: string }} props.name - 숨겨진 input의 name 속성
+ * * value는 실제 input의 id, name으로 들어가며 label은 다국어 처리를 한 텍스트
+ * @param {({ value: string, main: string, sub: string } | { value: string, label: string })[]} props.itemArray - 항목 배열
+ * * 실제 서버에서 전송할 값을 value, 다국어 처리를 한 텍스트를 label에 넘깁니다.
+ * * 한 줄 항목은 { value: string, label: string } 객체로 넘겨야 합니다.
+ * * 두 줄 항목은 { value: string, main: string, sub: string } 형태로 넘깁니다.
+ * @param {function(string, string): void} props.onSelect - 항목 선택 시 호출될 콜백 함수 (name.value, item.value)
+ * @param {string} props.selectedValue - 부모 컴포넌트에서 전달된 현재 선택된 값
  */
-export default function Dropdown({
-  name,
-  itemArray,
-  topLeftRadius = false,
-  topRightRadius = false,
-}) {
-  const { t } = useTranslation();
+export default function Dropdown({ name, itemArray, onSelect, selectedValue }) {
+  const { t, i18n } = useTranslation();
+
+  // 자동 스크롤 구현
+  const containerRef = useRef(null);
+  const optionBoxRef = useRef(null);
+
   const [isVisible, setIsVisible] = useState(false);
-  const [selectedValue, setSelectedValue] = useState(t("pleaseSelect")); // ui에 보여질 값
-  const [inputValue, setInputValue] = useState(""); // 실제 hidden input에 들어갈 값
+  const [selectedLabel, setSelectedLabel] = useState(t("pleaseSelect")); // ui에 보여질 값 = label
+  // ui 수정하는 코드 -> label만 관리
+  useEffect(() => {
+    const selectedItem = itemArray.find((item) => item.value === selectedValue);
+    let newLabel;
 
-  const handleSelect = (item) => {
-    // 두 줄인 경우 -> 비자 타입 선택
-    const isObject = typeof item === "object" && item !== null;
-
-    let newSelectedValue;
-    let newInputValue;
-    if (isObject) {
-      // 객체 항목 (두 줄) 일 경우
-      newSelectedValue = item.main || item;
-      newInputValue = item.main || item;
+    if (selectedItem) {
+      if (selectedItem.main) {
+        newLabel = selectedItem.main;
+      } else {
+        newLabel = selectedItem.label;
+      }
     } else {
-      newSelectedValue = item;
-      newInputValue = item;
+      newLabel = t("pleaseSelect");
     }
-    setSelectedValue(newSelectedValue);
-    setInputValue(newInputValue);
-    setIsVisible(false);
-  };
+    if (selectedLabel !== newLabel) {
+      setSelectedLabel(newLabel);
+    }
+  }, [selectedValue, itemArray, i18n.language, selectedLabel, t]);
+
+  const handleSelect = useCallback(
+    (item) => {
+      const newInputValue = item.value;
+
+      // 부모 컴포넌트로 값 전달
+      onSelect(name.value, newInputValue);
+      setIsVisible(false);
+    },
+    [onSelect, name.value]
+  );
+
+  // 드롭다운 열릴 때 자동 스크롤
+  useEffect(() => {
+    if (isVisible && containerRef.current && optionBoxRef.current) {
+      const dropdownContainer = containerRef.current;
+      const optionBox = optionBoxRef.current;
+      const timer = setTimeout(() => {
+        const optionRect = optionBox.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const isOffScreen = optionRect.bottom > viewportHeight || optionRect.top < 0;
+
+        if (isOffScreen) {
+          dropdownContainer.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }, 50);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible]);
+
+  // 드롭다운 열려있는 동안 스크롤 막기
+  useEffect(() => {
+    if (isVisible) {
+      document.body.classList.add("no-scroll");
+    } else {
+      document.body.classList.remove("no-scroll");
+    }
+
+    return () => {
+      document.body.classList.remove("no-scroll");
+    };
+  }, [isVisible]);
 
   return (
     <S.Container
+      ref={containerRef}
       onClick={() => setIsVisible(!isVisible)}
-      $selected={selectedValue !== t("pleaseSelect")}
+      $selected={selectedValue && selectedValue !== ""}
     >
-      {/* 실제 값은 이 input에 */}
-      <input type="hidden" id={name} name={name} value={inputValue} />
       <S.Content>
-        <div>{selectedValue}</div>
+        <div>{selectedLabel}</div>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="21"
@@ -66,13 +112,11 @@ export default function Dropdown({
       {isVisible && (
         <>
           <S.Overlay onClick={() => setIsVisible(false)} />
-          <S.OptionBox $topLeftRadius={topLeftRadius} $topRightRadius={topRightRadius}>
+          <S.OptionBox ref={optionBoxRef}>
             {itemArray.map((item, index) => {
-              const isObject = typeof item === "object" && item !== null;
-
-              // 객체일 경우 main/sub 키를 사용하고, 문자열일 경우 전체를 main으로 사용
-              const mainText = isObject ? item.main : item;
-              const subText = isObject ? item.sub : null;
+              // 두 줄일 경우 main/sub 키를 사용하고, 한 줄일 경우 전체를 label로 사용
+              const mainText = item.main ? item.main : item.label;
+              const subText = item.main ? item.sub : null;
               // subText가 존재할 때만 두 줄 렌더링
               const isTwoLines = !!subText;
               return (
