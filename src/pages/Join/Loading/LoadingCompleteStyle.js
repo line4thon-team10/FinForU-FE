@@ -43,7 +43,7 @@ export const Button = styled.button`
   justify-content: center;
   align-items: center;
   width: 100%;
-  max-width: 333px;
+  max-width: 323px;
   height: 3rem;
   margin-top: 100px;
 `;
