@@ -113,6 +113,7 @@ export const AllCheckWrapper = styled.div`
   line-height: normal;
   /* 클릭하면 배경 파래지는 거 수정 */
   -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+  cursor: pointer;
 `;
 
 export const ListWrapper = styled.div`
@@ -134,6 +135,7 @@ export const ListTitle = styled.div`
   display: flex;
   align-items: center;
   gap: 0.625rem;
+  cursor: pointer;
 
   div {
     color: #000;

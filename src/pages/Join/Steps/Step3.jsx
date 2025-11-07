@@ -69,7 +69,7 @@ export default function Step3({ formData, updateFormData, isSubmitted }) {
       <S.Title>{t("join.pleaseAgree")}</S.Title>
       <S.AllCheckWrapper>
         <button onClick={handleAllCheck}>{allChecked ? <AllCheckChecked /> : <AllCheck />}</button>
-        <div>{t("join.agreeAll")}</div>
+        <div onClick={handleAllCheck}>{t("join.agreeAll")}</div>
       </S.AllCheckWrapper>
       <S.ListWrapper>
         {terms.map((term) => (
