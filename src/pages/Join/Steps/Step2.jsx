@@ -41,12 +41,25 @@ export default function Step2({ formData, updateFormData, isSubmitted }) {
   );
 
   // 알림 설정
-  const handleToggleChange = useCallback(
-    (name, newState) => {
-      updateFormData({ [name]: newState });
-    },
-    [updateFormData]
-  );
+  const initialNotifyState = formData.notify ?? true;
+  const [isUpcomingOn, setIsUpcomingOn] = useState(initialNotifyState);
+  const [isMaturityOn, setIsMaturityOn] = useState(initialNotifyState);
+  const handleUpcomingToggle = useCallback((name, newState) => {
+    setIsUpcomingOn(newState);
+  }, []);
+
+  const handleMaturityToggle = useCallback((name, newState) => {
+    setIsMaturityOn(newState);
+  }, []);
+  useEffect(() => {
+    // 서버에서 구분이 딱히 없으므로 둘 중 하나만 true면 true로
+    const newNotifyStatus = isUpcomingOn || isMaturityOn;
+
+    // formData.notify 상태와 다를 때만 업데이트하여 불필요한 렌더링 방지
+    if (formData.notify !== newNotifyStatus) {
+      updateFormData({ notify: newNotifyStatus });
+    }
+  }, [isUpcomingOn, isMaturityOn, updateFormData, formData.notify]);
 
   // 유효성 검사
   const validateForm = useCallback(() => {
@@ -162,16 +175,16 @@ export default function Step2({ formData, updateFormData, isSubmitted }) {
           <div>{t("join.upcomingPaymentReminder")}</div>
           <ToggleSwitch
             name="upcomingPaymentReminder"
-            initialValue={formData.upcomingPaymentReminder}
-            onChange={handleToggleChange}
+            initialValue={isUpcomingOn}
+            onChange={handleUpcomingToggle}
           />
         </S.ToggleWrapper>
         <S.ToggleWrapper>
           <div>{t("join.maturityDateReminder")}</div>
           <ToggleSwitch
             name="maturityDateReminder"
-            initialValue={formData.maturityDateReminder}
-            onChange={handleToggleChange}
+            initialValue={isMaturityOn}
+            onChange={handleMaturityToggle}
           />
         </S.ToggleWrapper>
       </S.Label>

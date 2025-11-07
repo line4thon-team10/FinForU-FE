@@ -23,6 +23,7 @@ export default function Join() {
     password: "",
     name: "",
     nationality: "",
+    notify: true,
     isStep1Valid: false,
     isStep2Valid: false,
     isStep3Valid: false, // 약관 동의 상태
@@ -126,17 +127,19 @@ export default function Join() {
       password: formData.password,
       name: formData.name,
       nationality: formData.nationality,
-      language: LANG_MAP[i18n.language],
+      language: LANG_MAP[i18n.language] || "ENGLISH", // 언어 선택 없이 접근한 경우 기본값 영어
       visaType: formData.visaType || null,
       visaExpir: formData.visaExpirationDate
         ? new Date(
             formData.visaExpirationDate.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$1-$2")
           ).toISOString()
         : null, // ISO 형식으로 변환
-      // desireProducts, notificationSettings 등은 나중에 변경
+      notify: formData.notify,
+      // desireProducts는 나중에 수정
     };
 
     setIsLoading(true);
+    // console.log(signupData);
 
     try {
       const res = await api.post("/api/members/signup", signupData, {
