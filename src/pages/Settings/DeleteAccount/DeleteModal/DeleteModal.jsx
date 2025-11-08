@@ -4,20 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import api from "../../../../api/api";
 
-// 로그아웃 함수
-const handleLogout = async () => {
-  try {
-    await api.post("/api/members/logout");
-  } catch {
-    alert("Failed to logout.");
-  }
-};
-
 export default function DeleteModal({ onClose }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [isComplete, setIsComplete] = useState(true);
+  const [isComplete, setIsComplete] = useState(false);
   // 컴포넌트 마운트 상태 추적을 위한 Ref -> 삭제 중 모달 닫혀도 삭제 계속 진행되도록
   const mountedRef = useRef(true);
 
@@ -31,7 +22,6 @@ export default function DeleteModal({ onClose }) {
   // 모달 닫기 핸들러
   const handleClose = useCallback(() => {
     if (isComplete) {
-      handleLogout();
       // 완료 모달 닫으면 index 경로로 이동
       navigate("/", { replace: true }); // 뒤로가기 방지
     }
