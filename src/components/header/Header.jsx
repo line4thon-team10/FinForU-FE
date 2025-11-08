@@ -32,7 +32,7 @@ export default function Header() {
       <S.Title>{headerConfig.title}</S.Title>
       <S.BtnWrapper $isBack={false}>
         {headerConfig.showSettingBtn && (
-          <S.Button>
+          <S.Button onClick={() => navigate("/settings")}>
             {/* 추후 active 시 fill 색상 변경 가능 */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
