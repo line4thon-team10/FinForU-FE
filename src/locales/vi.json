@@ -198,6 +198,7 @@
     "goToLogin": "Đi đến Đăng nhập",
     "editInfo": "Chỉnh sửa Thông tin",
     "deleteAccount": "Xóa Tài khoản",
+    "logout": "đăng xuất",
     "language": "ngôn ngữ﻿",
     "pushNoti": "Thông báo Đẩy",
     "deleteDesc": "Khi bạn xóa tài khoản FinForU của mình,",
@@ -205,7 +206,7 @@
     "1desc": "Tất cả thông tin cá nhân, chi tiết đăng nhập, hồ sơ sử dụng, đánh giá và nội dung bạn đã tạo sẽ bị xóa vĩnh viễn và không thể khôi phục.",
     "2title": "2. Dịch vụ Không khả dụng",
     "2desc": "Sau khi xóa hoàn tất, bạn sẽ không thể sử dụng dịch vụ hoặc đăng nhập bằng tài khoản đó nữa.",
-    "3title": "Khuyến nghị Sao lưu Dữ liệu",
+    "3title": "3. Khuyến nghị Sao lưu Dữ liệu",
     "3desc": "Vui lòng đảm bảo lưu hoặc sao lưu bất kỳ thông tin quan trọng nào trước khi xóa tài khoản của bạn.",
     "deleteMsg": "Bạn thực sự muốn xóa tài khoản của mình?",
     "completeDelete": "Tài khoản của bạn đã được xóa thành công."
