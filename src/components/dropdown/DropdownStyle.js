@@ -30,7 +30,6 @@ export const OptionBox = styled.div`
   position: absolute;
   top: calc(100% + 2px);
   left: 0;
-  z-index: 200;
   background: none;
   background-color: #fff;
   border-radius: 0 0 0.625rem 0.625rem;

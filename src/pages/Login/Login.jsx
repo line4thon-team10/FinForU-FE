@@ -42,9 +42,7 @@ export default function Login() {
     };
 
     try {
-      const res = await api.post("/api/members/login", loginData, {
-        withCredentials: true,
-      });
+      const res = await api.post("/api/members/login", loginData);
 
       // 로그인 성공
       if (res.status === 200) {
