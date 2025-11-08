@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import GoToLogin from "./GoToLogin/GoToLogin";
 import * as S from "./SettingsStyle";
 import { useNavigate } from "react-router-dom";
+import api from "../../api/api";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -16,6 +17,15 @@ export default function Settings() {
       showSettingBtn: false, // 환경설정 버튼 여부
     });
   }, [setHeaderConfig, i18n.language]);
+
+  const handleLogout = async () => {
+    try {
+      await api.post("/api/members/logout");
+      navigate("/", { replace: true });
+    } catch {
+      alert("Failed to logout.");
+    }
+  };
 
   // 로그인 상태 확인해서 비로그인 상태면 로그인 필요 컴포넌트 띄우기
   // return <GoToLogin />
@@ -81,6 +91,7 @@ export default function Settings() {
           />
         </svg>
       </S.Btn>
+      <S.LogoutBtn onClick={handleLogout}>{t("settings.logout")}</S.LogoutBtn>
     </S.Container>
   );
 }
