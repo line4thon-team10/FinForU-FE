@@ -1,13 +1,4 @@
-import styled, { keyframes } from "styled-components";
-
-const spin = keyframes`
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-`;
+import styled from "styled-components";
 
 export const Container = styled.div`
   width: 100%;
@@ -19,18 +10,16 @@ export const Container = styled.div`
   justify-content: center;
   align-items: center;
   z-index: 10000;
-  gap: 2.8125rem;
-  padding: 0 1rem;
-`;
-
-export const Spinner = styled.div`
-  animation: ${spin} 2.5s linear infinite;
+  padding: 0 2.25rem;
 `;
 
 export const Text = styled.div`
   color: #000;
   font-size: 1.25rem;
   font-weight: 500;
+  text-align: center;
+  width: 80%;
+  margin: 2.8125rem 0 4.125rem;
 `;
 
 export const Button = styled.button`
@@ -43,7 +32,6 @@ export const Button = styled.button`
   justify-content: center;
   align-items: center;
   width: 100%;
-  max-width: 323px;
+  max-width: 321px;
   height: 3rem;
-  margin-top: 100px;
 `;

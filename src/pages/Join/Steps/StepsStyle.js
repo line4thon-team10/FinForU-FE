@@ -1,4 +1,4 @@
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 
 /* steps 공통 스타일 */
 export const Container = styled.div`

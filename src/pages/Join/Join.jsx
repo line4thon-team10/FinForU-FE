@@ -129,22 +129,20 @@ export default function Join() {
       nationality: formData.nationality,
       language: LANG_MAP[i18n.language] || "ENGLISH", // 언어 선택 없이 접근한 경우 기본값 영어
       visaType: formData.visaType || null,
-      visaExpir: formData.visaExpirationDate
+      visaExpir: formData.visaExpir
         ? new Date(
-            formData.visaExpirationDate.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$1-$2")
+            formData.visaExpir.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$1-$2")
           ).toISOString()
         : null, // ISO 형식으로 변환
       notify: formData.notify,
-      // desireProducts는 나중에 수정
+      desiredProducts: formData.desiredProducts,
     };
 
     setIsLoading(true);
     // console.log(signupData);
 
     try {
-      const res = await api.post("/api/members/signup", signupData, {
-        withCredentials: true,
-      });
+      const res = await api.post("/api/members/signup", signupData);
 
       // 회원가입 성공
       if (res.status === 200) {
