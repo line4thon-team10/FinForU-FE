@@ -54,7 +54,7 @@ export const Text = styled.div`
 export const ButtonWrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: 3.1875rem;
+  gap: 2.5rem;
   button {
     width: 7.9375rem;
     color: #fff;
@@ -62,7 +62,7 @@ export const ButtonWrapper = styled.div`
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 0.875rem 2.8125rem;
+    padding: 0.875rem 2rem;
     height: 3.125rem;
     font-size: 1.125rem;
     font-weight: 600;
