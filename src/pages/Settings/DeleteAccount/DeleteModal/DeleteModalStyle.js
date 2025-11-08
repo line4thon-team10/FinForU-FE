@@ -47,8 +47,8 @@ export const Text = styled.div`
   justify-content: center;
   align-items: center;
   font-family:
-    "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
-    sans-serif;
+    "Noto Sans SC", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", sans-serif;
 `;
 
 export const ButtonWrapper = styled.div`
