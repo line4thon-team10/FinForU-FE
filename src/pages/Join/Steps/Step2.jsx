@@ -11,6 +11,7 @@ export default function Step2({ formData, updateFormData, isSubmitted }) {
 
   // 비자 드롭다운 값
   const visaTypeName = { value: "visaType", label: t("join.visaType") };
+  // API 수정 요청 필요 -> value 명확히 받아야 환경설정에서도 GET 요청으로 값 가져오기 가능
   const visaTypeArray = [
     { value: "ACCOUNT_OPEN", main: t("join.academic"), sub: "(D2, D4)" },
     {
@@ -25,19 +26,23 @@ export default function Step2({ formData, updateFormData, isSubmitted }) {
 
   // 선호 상품 종류 값
   const desireProductsArray = useMemo(
-    () => [t("card"), t("deposit"), t("installmentSavings")],
+    () => [
+      { value: "CARD", label: t("card") },
+      { value: "DEPOSIT", label: t("deposit") },
+      { value: "INSTALLMENT_SAVINGS", label: t("installmentSavings") },
+    ],
     [t]
   );
   const handleProductSelect = useCallback(
     (product) => {
-      const prevSelected = formData.selectedProducts || [];
-      const newSelected = prevSelected.includes(product)
-        ? prevSelected.filter((name) => name !== product)
-        : [...prevSelected, product];
+      const prevSelected = formData.desiredProducts || [];
+      const newSelected = prevSelected.includes(product.value)
+        ? prevSelected.filter((value) => value !== product.value)
+        : [...prevSelected, product.value];
 
-      updateFormData({ selectedProducts: newSelected });
+      updateFormData({ desiredProducts: newSelected });
     },
-    [formData.selectedProducts, updateFormData]
+    [formData.desiredProducts, updateFormData]
   );
 
   // 알림 설정
@@ -72,12 +77,12 @@ export default function Step2({ formData, updateFormData, isSubmitted }) {
     }
 
     const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
-    if (!formData.visaExpirationDate || !dateRegex.test(formData.visaExpirationDate)) {
-      errors.visaExpirationDate = "Please enter a valid visa expiration date.";
+    if (!formData.visaExpir || !dateRegex.test(formData.visaExpir)) {
+      errors.visaExpir = "Please enter a valid visa expiration date.";
       isValid = false;
     } else {
       // 유효한 진짜 날짜인지 검증
-      const parts = formData.visaExpirationDate.split("/");
+      const parts = formData.visaExpir.split("/");
       const month = parseInt(parts[0], 10);
       const day = parseInt(parts[1], 10);
       const year = parseInt(parts[2], 10);
@@ -87,13 +92,13 @@ export default function Step2({ formData, updateFormData, isSubmitted }) {
         dateObject.getMonth() === month - 1 &&
         dateObject.getDate() === day;
       if (!dateIsValid) {
-        errors.visaExpirationDate = "The entered date is not a real date.";
+        errors.visaExpir = "The entered date is not a real date.";
         isValid = false;
       }
     }
 
-    if (!formData.selectedProducts || formData.selectedProducts.length === 0) {
-      errors.selectedProducts = "Please choose your desired product.";
+    if (!formData.desiredProducts || formData.desiredProducts.length === 0) {
+      errors.desiredProducts = "Please choose your desired product.";
       isValid = false;
     }
 
@@ -135,7 +140,7 @@ export default function Step2({ formData, updateFormData, isSubmitted }) {
           name={visaTypeName}
           itemArray={visaTypeArray}
           onSelect={(name, value) => handleChange("visaType", value)}
-          selectedValue={formData.visaType}
+          selectedValue={getVisaTypeDisplayValue}
         />
         {isSubmitted && validationErrors.visaType && (
           <S.ValidText>{validationErrors.visaType}</S.ValidText>
@@ -145,11 +150,11 @@ export default function Step2({ formData, updateFormData, isSubmitted }) {
         {t("join.visaExpirationDate")}
         <S.Input
           placeholder="MM/DD/YYYY"
-          value={formData.visaExpirationDate || ""}
-          onChange={(e) => handleChange("visaExpirationDate", e.target.value)}
+          value={formData.visaExpir || ""}
+          onChange={(e) => handleChange("visaExpir", e.target.value)}
         />
-        {isSubmitted && validationErrors.visaExpirationDate && (
-          <S.ValidText>{validationErrors.visaExpirationDate}</S.ValidText>
+        {isSubmitted && validationErrors.visaExpir && (
+          <S.ValidText>{validationErrors.visaExpir}</S.ValidText>
         )}
       </S.Label>
       <S.Label>
@@ -157,16 +162,16 @@ export default function Step2({ formData, updateFormData, isSubmitted }) {
         <S.ButtonWrapper>
           {desireProductsArray.map((product) => (
             <S.Button
-              key={product}
+              key={product.value}
               onClick={() => handleProductSelect(product)}
-              $selected={(formData.selectedProducts || []).includes(product)}
+              $selected={(formData.desiredProducts || []).includes(product.value)}
             >
-              {product}
+              {product.label}
             </S.Button>
           ))}
         </S.ButtonWrapper>
-        {isSubmitted && validationErrors.selectedProducts && (
-          <S.ValidText>{validationErrors.selectedProducts}</S.ValidText>
+        {isSubmitted && validationErrors.desiredProducts && (
+          <J.ValidText>{validationErrors.desiredProducts}</J.ValidText>
         )}
       </S.Label>
       <S.Label>
