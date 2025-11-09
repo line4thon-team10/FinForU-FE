@@ -10,7 +10,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // 현재 언어를 지정하지 않은 경우 자동으로 영어로
-    const currentLang = LANG_MAP[i18next.language] || "ENGLISH";
+    const currentLang = i18next.language || "en";
     config.headers["Accept-Language"] = currentLang;
     return config;
   },
