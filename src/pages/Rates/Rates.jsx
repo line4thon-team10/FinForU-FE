@@ -1,10 +1,33 @@
 import { useTranslation } from "react-i18next";
 import { useHeaderStore } from "../../stores/headerStore";
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import i18next from "i18next";
 import * as S from "./RatesStyle";
+import RateChart from "./RateChart/RateChart";
+import api from "../../api/api";
 
-const res = {
+// 은행 로고 이미지 파일 import
+import shinhanLogo from "./shinhan.png";
+import hanaLogo from "./hana.png";
+import kookminLogo from "./kookmin.png";
+import wooriLogo from "./woori.png";
+// 매핑 파일
+const bankLogos = {
+  shinhan: shinhanLogo,
+  hana: hanaLogo,
+  kookmin: kookminLogo,
+  woori: wooriLogo,
+};
+
+// 초기 상태 빈 데이터로
+const initialRateData = {
+  isSuccess: false,
+  timeStamp: "",
+  data: [],
+};
+
+// API 확인용 더미 데이터
+const DUMMY_API_RESPONSE = {
   isSuccess: true,
   timeStamp: "2025-11-06 15:01:49",
   code: "SUCCESS_200",
@@ -154,6 +177,12 @@ const res = {
 };
 
 export default function Rates() {
+  const [exchangeRateData, setExchangeRateData] = useState(initialRateData);
+  const [loading, setLoading] = useState(true);
+  // 현재 선택된 통화 (기본값 USD)
+  const [selectedCurrency, setSelectedCurrency] = useState("USD");
+  // 현재 선택된 기간 (기본값 1_WEEK)
+  const [selectedPeriod, setSelectedPeriod] = useState("1_WEEK");
   const { t } = useTranslation();
   // 헤더 설정
   const setHeaderConfig = useHeaderStore((state) => state.setHeaderConfig);
@@ -164,53 +193,191 @@ export default function Rates() {
       showSettingBtn: true, // 환경설정 버튼 여부
     });
   }, [setHeaderConfig, i18next.language]);
+
+  // GET 요청으로 데이터 fetch
+  const fetchExchangeRates = useCallback(async () => {
+    setLoading(true);
+    try {
+      // const res = await api.get("/api/exrate");
+      // setExchangeRateData(res.data);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setExchangeRateData(DUMMY_API_RESPONSE);
+    } catch (error) {
+      console.error("환율 데이터 로드 실패", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchExchangeRates();
+  }, [fetchExchangeRates]);
+
+  // 현재 선택된 통화 데이터 계산
+  const currentCurrencyData = useMemo(() => {
+    if (exchangeRateData.data.length === 0) return;
+
+    const dataItem = exchangeRateData.data.find(
+      (item) => item.ExchangeRateData.currencyType === selectedCurrency
+    );
+
+    return dataItem || null;
+  }, [exchangeRateData.data, selectedCurrency]);
+
+  // 선택된 기간 -> 그래프 데이터 필터링
+  const filteredGraphData = useCallback(
+    (graphData, period) => {
+      // 데이터가 없으면 빈 배열 반환
+      if (!graphData) return [];
+      const today = new Date(exchangeRateData.timeStamp || new Date());
+      let startDate;
+
+      switch (period) {
+        case "1_WEEK":
+          startDate = new Date(today);
+          startDate.setDate(today.getDate() - 7);
+          break;
+        case "3_MONTHS":
+          startDate = new Date(today);
+          startDate.setMonth(today.getMonth() - 3);
+          break;
+        case "1_YEAR":
+        // 7일에 한 번 샘플링
+        // 가장 최근 데이터 포함
+        // const sampleData = [];
+        // for (let i = 0; i < graphData.length; i += 7) {
+        //   sampleData.push(graphData[i]);
+        // }
+
+        // if (
+        //   graphData.length > 0 &&
+        //   sampleData[sampleData.length - 1] !== graphData[graphData.length - 1]
+        // ) {
+        //   sampleData.push(graphData[graphData.length - 1]);
+        // }
+        // return sampleData;
+        default:
+          return graphData;
+      }
+      const startDateString = startDate.toISOString().split("T")[0];
+      return graphData.filter((item) => item.date >= startDateString);
+    },
+    [exchangeRateData.timeStamp]
+  );
+
+  // RateChart 컴포넌트에 그래프 데이터 전달
+  const finalGraphData = useMemo(() => {
+    if (!currentCurrencyData) return [];
+    return filteredGraphData(currentCurrencyData.ExchangeRateData.priceGraphData, selectedPeriod);
+  }, [currentCurrencyData, selectedPeriod, filteredGraphData]);
+
+  // 통화 선택 핸들러
+  const handleCurrencyChange = (e) => {
+    setSelectedCurrency(e.target.value);
+  };
+
+  // 기간 선택 핸들러
+  const handlePeriodChange = (period) => {
+    setSelectedPeriod(period);
+  };
+
+  // eachBankFee 포맷팅
+  const formatFee = (fee) => {
+    if (fee === null) {
+      return t("rates.unsupported");
+    }
+    if (fee > 0 && fee < 1) {
+      // 0.175인 경우
+      return `${fee.toFixed(3)}%`;
+    }
+    return `${fee}%`;
+  };
+
+  // API 연결 전 임시 데이터
+  const dummyData = {
+    ExchangeRateData: {
+      currencyType: selectedCurrency,
+      todayRate: 0,
+      rateCompareYesterday: 0,
+      eachBankFee: [],
+    },
+    toastMessage: t("rates.recommendMsg"),
+  };
+  const dataToUse = currentCurrencyData ?? dummyData;
+
+  // API 응답 데이터에서 구조 분해 할당
+  const {
+    ExchangeRateData: { currencyType, todayRate, rateCompareYesterday, eachBankFee },
+    toastMessage,
+  } = dataToUse;
+
   return (
     <S.Container>
       <S.TopBox>
-        <S.Toast>{res.data[0].toastMessage || t("rates.recommendMsg")}</S.Toast>
+        <S.Toast>{toastMessage || t("rates.recommendMsg")}</S.Toast>
         <S.Title>{t("rates.currencyExchangeRate")}</S.Title>
-        <S.ButtonWrapper>
-          <input
-            type="radio"
-            id="USD"
-            name="currencyType"
-            value="USD"
-            checked={res.data[0].ExchangeRateData.currencyType === "USD"}
-            readOnly={true}
-          />
-          <label htmlFor="USD">USD</label>
-          <input
-            type="radio"
-            id="CNY"
-            name="currencyType"
-            value="CNY"
-            checked={res.data[0].ExchangeRateData.currencyType === "CNY"}
-            readOnly={true}
-          />
-          <label htmlFor="CNY">CNY</label>
-          <input
-            type="radio"
-            id="VND"
-            name="currencyType"
-            value="VND"
-            checked={res.data[0].ExchangeRateData.currencyType === "VND"}
-            readOnly={true}
-          />
-          <label htmlFor="VND">VND</label>
+        <S.ButtonWrapper onChange={handleCurrencyChange}>
+          {exchangeRateData.data.map((item) => {
+            const type = item.ExchangeRateData.currencyType;
+            return (
+              <div key={type}>
+                <input
+                  type="radio"
+                  id={type}
+                  name="currencyType"
+                  value={type}
+                  checked={selectedCurrency === type}
+                  readOnly={true} // 선택 가능
+                />
+                <label htmlFor={type}>{type}</label>
+              </div>
+            );
+          })}
         </S.ButtonWrapper>
       </S.TopBox>
       <S.GraphWrapper>
-        <S.MiniTitle>KRW to {res.data[0].ExchangeRateData.currencyType}</S.MiniTitle>
+        <S.MiniTitle>KRW to {currencyType}</S.MiniTitle>
         <S.RateBox>
-          <S.Rate>{res.data[0].ExchangeRateData.todayRate}</S.Rate>
+          <S.Rate>{todayRate.toLocaleString()}</S.Rate>
           <S.TodayBox>
             <S.Today>{t("rates.today")}</S.Today>
-            <S.TodayRate>
-              {res.data[0].ExchangeRateData.rateCompareYesterday.toFixed(1)}%
-            </S.TodayRate>
+            <S.TodayRate>+{rateCompareYesterday.toFixed(1)}%</S.TodayRate>
           </S.TodayBox>
         </S.RateBox>
+        <S.PeriodBtnWrapper>
+          <S.OneWeekBtn
+            onClick={() => handlePeriodChange("1_WEEK")}
+            $active={selectedPeriod === "1_WEEK"}
+          >
+            1 WEEK
+          </S.OneWeekBtn>
+          <S.ThreeMonthsBtn
+            onClick={() => handlePeriodChange("3_MONTHS")}
+            $active={selectedPeriod === "3_MONTHS"}
+          >
+            3 MONTHS
+          </S.ThreeMonthsBtn>
+          <S.OneYearBtn
+            onClick={() => handlePeriodChange("1_YEAR")}
+            $active={selectedPeriod === "1_YEAR"}
+          >
+            1 YEAR
+          </S.OneYearBtn>
+        </S.PeriodBtnWrapper>
+        <RateChart graphData={finalGraphData} />
       </S.GraphWrapper>
+      <S.FeeBox>
+        <S.Title>{t("rates.feeComparison")}</S.Title>
+        {eachBankFee.map((item) => (
+          <S.FeeItem key={item.bank}>
+            <img src={bankLogos[item.bank]} />
+            <S.NameBox>
+              <S.Bank>{t(`banks.${item.bank}`)}</S.Bank>
+              <S.Fee>{formatFee(item.fee)}</S.Fee>
+            </S.NameBox>
+          </S.FeeItem>
+        ))}
+      </S.FeeBox>
     </S.Container>
   );
 }

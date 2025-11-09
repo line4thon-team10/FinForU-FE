@@ -3,7 +3,7 @@ import styled from "styled-components";
 export const Container = styled.div`
   width: 100%;
   max-width: 393px;
-  padding: calc(3.5625rem + 0.875rem) 1.875rem 6.75rem;
+  padding: calc(3.5625rem + 0.875rem) 1.875rem 7.75rem;
   background-color: #fff;
   display: flex;
   flex-direction: column;
@@ -113,4 +113,76 @@ export const TodayRate = styled.div`
   font-size: 1rem;
   font-weight: 400;
   color: #ff6767;
+`;
+
+export const PeriodBtnWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  border-bottom: 1px solid #d9d9d9;
+  height: 1rem;
+
+  button {
+    position: absolute;
+    top: 0;
+    width: 4.5rem;
+    height: 1rem;
+    padding: 0 0 0.3125rem;
+    background-color: #fff;
+    font-size: 0.625rem;
+    font-weight: 400;
+  }
+`;
+
+/* 기본 버튼 스타일 */
+export const BaseBtn = styled.button`
+  color: ${({ $active }) => ($active ? "#000" : "#515151")};
+  border-bottom: 1px solid ${({ $active }) => ($active ? "#282828" : "#d9d9d9")};
+`;
+
+export const OneWeekBtn = styled(BaseBtn)`
+  left: 0;
+`;
+
+export const ThreeMonthsBtn = styled(BaseBtn)`
+  left: 4.5rem;
+`;
+
+export const OneYearBtn = styled(BaseBtn)`
+  left: 9rem;
+`;
+
+export const FeeBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.9375rem;
+`;
+
+export const FeeItem = styled.div`
+  display: flex;
+  gap: 0.8125rem;
+  align-items: center;
+
+  img {
+    width: 2.1875rem;
+    height: 2.1875rem;
+    border-radius: 0.3125rem;
+  }
+`;
+
+export const NameBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+`;
+
+export const Bank = styled.div`
+  font-size: 1rem;
+  font-weight: 400;
+  color: #000;
+`;
+
+export const Fee = styled.div`
+  font-size: 0.8125rem;
+  color: #484848;
+  font-weight: 400;
 `;
