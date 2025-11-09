@@ -140,7 +140,7 @@ export default function Step2({ formData, updateFormData, isSubmitted }) {
           name={visaTypeName}
           itemArray={visaTypeArray}
           onSelect={(name, value) => handleChange("visaType", value)}
-          selectedValue={getVisaTypeDisplayValue}
+          selectedValue={formData.visaType}
         />
         {isSubmitted && validationErrors.visaType && (
           <S.ValidText>{validationErrors.visaType}</S.ValidText>
