@@ -168,7 +168,8 @@
     "currencyExchangeRate": "货币汇率",
     "recommendMsg": "今天转账更划算!",
     "today": "今天",
-    "feeComparison": "费用比较"
+    "feeComparison": "费用比较",
+    "unsupported": "不支持的"
   },
   "wallet": {
     "loginToSee": "登录后可使用更多功能。",

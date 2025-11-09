@@ -8,6 +8,7 @@ export const GlobalStyle = createGlobalStyle`
     --color-input-gray: #b3b3b3;
     --color-primary: #0093dd;
     --color-secondary: #009cea;
+    --color-primary-sky-blue: #d9f2ff;
   }
 
   html, body {

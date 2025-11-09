@@ -168,7 +168,8 @@
     "currencyExchangeRate": "Tỷ giá hối đoái tiền tệ",
     "recommendMsg": "Hôm nay chuyển tiền sẽ có lợi hơn!",
     "today": "Hôm nay",
-    "feeComparison": "So sánh phí"
+    "feeComparison": "So sánh phí",
+    "unsupported": "chưa được hỗ trợ"
   },
   "wallet": {
     "loginToSee": "Có thêm nhiều tính năng sau khi đăng nhập.",
