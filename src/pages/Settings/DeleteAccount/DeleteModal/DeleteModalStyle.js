@@ -54,7 +54,7 @@ export const Text = styled.div`
 export const ButtonWrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: 2.5rem;
+  gap: 2rem;
   button {
     width: 7.9375rem;
     color: #fff;
