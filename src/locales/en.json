@@ -168,7 +168,8 @@
     "currencyExchangeRate": "Currency Exchange Rate",
     "recommendMsg": "It's better to transfer money today!",
     "today": "Today",
-    "feeComparison": "Fee Comparison"
+    "feeComparison": "Fee Comparison",
+    "unsupported": "Unsupported"
   },
   "wallet": {
     "loginToSee": "More features are available after login.",
