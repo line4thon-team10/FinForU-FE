@@ -10,6 +10,7 @@ import Join from "./pages/Join/Join";
 import Settings from "./pages/Settings/Settings";
 import EditInformation from "./pages/Settings/EditInformation/EditInformation";
 import DeleteAccount from "./pages/Settings/DeleteAccount/DeleteAccount";
+import Rates from "./pages/Rates/Rates";
 
 function App() {
   const { i18n } = useTranslation();
@@ -35,6 +36,7 @@ function App() {
         {/* header와 navigation이 둘 다 있는 레이아웃 */}
         <Route element={<HeaderNavLayout />}>
           <Route path="/guide" element={<Guide />} />
+          <Route path="/rates" element={<Rates />} />
         </Route>
       </Routes>
     </RootLayout>
