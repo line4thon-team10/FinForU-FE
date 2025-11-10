@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { useHeaderStore } from "../../stores/headerStore";
 import { useTranslation } from "react-i18next";
-import GoToLogin from "./GoToLogin/GoToLogin";
 import * as S from "./SettingsStyle";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api";
+import GoToLogin from "../../components/go-to-login/GoToLogin";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ export default function Settings() {
   };
 
   // 로그인 상태 확인해서 비로그인 상태면 로그인 필요 컴포넌트 띄우기
-  // return <GoToLogin />
+  // return <GoToLogin />;
   return (
     <S.Container>
       <S.Btn onClick={() => navigate("/settings/edit-information")}>
