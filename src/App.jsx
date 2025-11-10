@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
 import Guide from "./pages/Guide/Guide";
+import Map from "./pages/map/Map";
 
 function App() {
   const { i18n } = useTranslation();
@@ -26,6 +27,7 @@ function App() {
         {/* header와 navigation이 둘 다 있는 레이아웃 */}
         <Route element={<HeaderNavLayout />}>
           <Route path="/guide" element={<Guide />} />
+          <Route path="/map" element={<Map/>} />
         </Route>
       </Routes>
     </RootLayout>
