@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import Navigation from "../../components/navigation/Navigation";
+import Navigation from "../../components/Navigation/Navigation";
 import { useHeaderStore } from "../../stores/headerStore";
 import { useEffect, useState, useRef } from "react";
 import * as S from "./GuideStyle";
