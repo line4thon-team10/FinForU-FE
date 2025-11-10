@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import * as S from "./GoToLoginStyle";
 import { useNavigate } from "react-router-dom";
-import Error from "./error.svg?react";
+import Error from "./icon/error.svg?react";
 import { useHeaderStore } from "../../../stores/headerStore";
 import { useEffect } from "react";
 

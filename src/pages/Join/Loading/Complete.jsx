@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import * as S from "./LoadingCompleteStyle";
-import CompleteCheck from "./complete.svg?react";
+import CompleteCheck from "./icon/complete.svg?react";
 import { useNavigate } from "react-router-dom";
 
 export default function Complete() {

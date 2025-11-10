@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import * as S from "./HomeStyle";
-import World from "./world.svg?react";
+import World from "./icon/world.svg?react";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 

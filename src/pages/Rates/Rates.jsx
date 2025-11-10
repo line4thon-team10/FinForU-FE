@@ -7,10 +7,10 @@ import RateChart from "./RateChart/RateChart";
 import api from "../../api/api";
 
 // 은행 로고 이미지 파일 import
-import shinhanLogo from "./shinhan.png";
-import hanaLogo from "./hana.png";
-import kookminLogo from "./kookmin.png";
-import wooriLogo from "./woori.png";
+import shinhanLogo from "./icon/shinhan.png";
+import hanaLogo from "./icon/hana.png";
+import kookminLogo from "./icon/kookmin.png";
+import wooriLogo from "./icon/woori.png";
 // 매핑 파일
 const bankLogos = {
   shinhan: shinhanLogo,

@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import * as S from "./StepsStyle";
-import AllCheck from "./all-check.svg?react";
-import AllCheckChecked from "./all-check-checked.svg?react";
+import AllCheck from "./icon/all-check.svg?react";
+import AllCheckChecked from "./icon/all-check-checked.svg?react";
 import Term from "../Term/Term";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
