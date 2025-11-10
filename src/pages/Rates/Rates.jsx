@@ -183,7 +183,7 @@ export default function Rates() {
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
   // 현재 선택된 기간 (기본값 1_WEEK)
   const [selectedPeriod, setSelectedPeriod] = useState("1_WEEK");
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   // 헤더 설정
   const setHeaderConfig = useHeaderStore((state) => state.setHeaderConfig);
   useEffect(() => {
@@ -192,7 +192,7 @@ export default function Rates() {
       showBackBtn: false, // 뒤로가기 버튼 여부
       showSettingBtn: true, // 환경설정 버튼 여부
     });
-  }, [setHeaderConfig, i18next.language]);
+  }, [setHeaderConfig, i18n.language]);
 
   // GET 요청으로 데이터 fetch
   const fetchExchangeRates = useCallback(async () => {

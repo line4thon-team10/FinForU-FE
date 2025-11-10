@@ -11,6 +11,7 @@ import Settings from "./pages/Settings/Settings";
 import EditInformation from "./pages/Settings/EditInformation/EditInformation";
 import DeleteAccount from "./pages/Settings/DeleteAccount/DeleteAccount";
 import Rates from "./pages/Rates/Rates";
+import Wallet from "./pages/Wallet/Wallet";
 
 function App() {
   const { i18n } = useTranslation();
@@ -37,6 +38,7 @@ function App() {
         <Route element={<HeaderNavLayout />}>
           <Route path="/guide" element={<Guide />} />
           <Route path="/rates" element={<Rates />} />
+          <Route path="/wallet" element={<Wallet />} />
         </Route>
       </Routes>
     </RootLayout>
