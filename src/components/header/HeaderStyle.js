@@ -27,8 +27,10 @@ export const BtnWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  text-align: center;
+  width: 1.875rem;
+  height: 1.875rem;
 
-  &,
   & > button {
     width: ${({ $isBack }) => ($isBack ? "1.875rem" : "1.25rem")};
     height: ${({ $isBack }) => ($isBack ? "1.875rem" : "1.25rem")};

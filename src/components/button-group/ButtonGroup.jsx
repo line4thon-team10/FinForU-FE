@@ -1,4 +1,5 @@
 import * as S from "./ButtonGroupStyle";
+import { useTranslation } from "react-i18next";
 
 /**
  * 하단 버튼 2개 (회색 버튼 / 파란색 버튼) 와 그걸 감싸는 wrapper로 이루어진 컴포넌트
@@ -15,20 +16,24 @@ import * as S from "./ButtonGroupStyle";
  */
 export default function ButtonGroup({
   grayType = "button",
-  grayText = "Cancel",
+  grayText,
   onGrayClick,
   blueType = "submit",
-  blueText = "Confirm",
+  blueText,
   blueDisabled,
   onBlueClick,
 }) {
+  const { t } = useTranslation();
+  // 내부 텍스트 기본값 설정
+  const realGrayText = grayText ?? t("cancel");
+  const realBlueText = blueText ?? t("confirm");
   return (
     <S.Wrapper>
       <S.GrayBtn onClick={onGrayClick} type={grayType}>
-        {grayText}
+        {realGrayText}
       </S.GrayBtn>
       <S.BlueBtn onClick={onBlueClick} type={blueType} disabled={blueDisabled}>
-        {blueText}
+        {realBlueText}
       </S.BlueBtn>
     </S.Wrapper>
   );

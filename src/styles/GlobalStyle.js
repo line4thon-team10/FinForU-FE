@@ -5,7 +5,10 @@ export const GlobalStyle = createGlobalStyle`
     --color-primary-gray: #b1b1b1;
     --color-secondary-gray: #dadada;
     --color-tertiary-gray: #d6d6d6;
-    --color-primary: #0093DD;
+    --color-input-gray: #b3b3b3;
+    --color-primary: #0093dd;
+    --color-secondary: #009cea;
+    --color-primary-sky-blue: #d9f2ff;
   }
 
   html, body {
@@ -63,4 +66,9 @@ export const GlobalStyle = createGlobalStyle`
     border: none;
     background-color: transparent;
   }
+
+  /* 드롭다운 / 모달 창 열려있을 때 스크롤 막는 클래스 */
+  .no-scroll {
+  overflow: hidden; 
+}
 `;
