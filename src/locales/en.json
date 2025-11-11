@@ -13,6 +13,7 @@
   "delete": "Delete",
   "others": "Others",
   "add": "Add",
+  "edit": "Edit",
   "banks": {
     "hana": "Hana Bank",
     "kookmin": "Kookmin Bank",
