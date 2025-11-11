@@ -23,6 +23,7 @@ export const Label = styled.label`
 export const Input = styled.input`
   width: 100%;
   display: flex;
+  align-items: center;
   border-radius: 0.625rem;
   border: 2px solid var(--color-input-gray);
   height: 3.125rem;
