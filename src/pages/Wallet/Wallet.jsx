@@ -43,11 +43,11 @@ export default function Wallet() {
     });
   };
 
-  const openModal = (typeValue, modalValue, id = null) => {
+  const openModal = (type, modal, id = null) => {
     setModalState({
       isOpen: true,
-      type: typeValue,
-      modalType: modalValue,
+      type: type,
+      modalType: modal,
       id: id,
     });
   };

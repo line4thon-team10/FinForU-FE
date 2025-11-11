@@ -33,6 +33,7 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(modalType.value === "edit");
 
   // 은행 드롭다운 값
   const bankName = { value: "bank", label: t("product.bank") };
@@ -54,13 +55,36 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
     { value: "CREDIT", label: t("wallet.credit") },
   ];
 
-  // 입력 필드 변경 핸들러
+  // 날짜 포맷팅
+  const formatDate = useCallback((value) => {
+    const cleaned = String(value).replace(/[^0-9]/g, "");
+    const month = cleaned.substring(0, 2);
+    const year = cleaned.substring(2, 6);
+
+    if (cleaned.length === 0) return "";
+
+    // 2글자 이상 입력되면 자동으로 '/'를 추가하여 보여줌
+    if (cleaned.length > 2) {
+      return `${month}/${year}`;
+    }
+    return month;
+  }, []);
+
+  // 입력 필드 포맷팅 & 변경 핸들러
   const handleChange = useCallback((field, value) => {
+    let cleanValue = value;
+
+    // MM/YYYY로 보이지만 MMYYYY를 저장
+    if (field === "startDate" || field === "endDate") {
+      cleanValue = String(value)
+        .replace(/[^0-9]/g, "")
+        .substring(0, 6);
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: cleanValue, // 순수 값 저장
     }));
-    // 에러 초기화
     setErrors((prev) => ({
       ...prev,
       [field]: undefined,
@@ -72,11 +96,11 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
     (typeValue) => {
       handleChange("productType", typeValue);
       // CHECK 카드를 선택하면 납부일자 필드 초기화/비활성화
-      if (productType.value === "card" && typeValue === "CHECK") {
+      if (type.value === "card" && typeValue === "CHECK") {
         handleChange("paymentDate", "");
       }
     },
-    [handleChange, productType.value]
+    [handleChange, type.value]
   );
 
   // 유효성 검사
@@ -90,7 +114,7 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
     }
 
     // savings이거나 card일 때 === type, name
-    if (productType.value === "savings" || productType.value === "card") {
+    if (type.value === "savings" || type.value === "card") {
       if (!data.productType) {
         newErrors.productType = "Please select the product type.";
       }
@@ -100,8 +124,8 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
     }
 
     // savings일 때 === date, monthly, paymentDate
-    if (productType.value === "savings") {
-      const dateRegex = /^(0[1-9]|1[0-2])\/\d{4}$/; // MM/YYYY 형식
+    if (type.value === "savings") {
+      const dateRegex = /^(0[1-9]|1[0-2])\d{4}$/; // MMYYYY 형식
 
       if (!data.startDate || !dateRegex.test(data.startDate))
         newErrors.startDate = "Please enter the exact start date.";
@@ -120,7 +144,7 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
     }
 
     // card일 때 === paymentDate
-    else if (productType.value === "card") {
+    else if (type.value === "card") {
       const paymentDay = Number(data.paymentDate);
 
       // Credit 카드일 경우 납부일자 필수
@@ -135,7 +159,7 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData, productType]);
+  }, [formData, type]);
 
   // API 요청 로직
   const getApiInfo = (type, modalType, id) => {
@@ -157,7 +181,7 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
   // edit일 때 기존 데이터 로딩
   useEffect(() => {
     const fetchInitData = async () => {
-      if ((modalType.value = "edit")) {
+      if (modalType.value === "edit") {
         const { url } = getApiInfo(type.value, "edit", id);
 
         try {
@@ -190,7 +214,7 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
   // Add Another Account 버튼 & Confirm 버튼 공통 추가 로직
   const handleSave = useCallback(
     async (isAddAnother = false) => {
-      if (isSubmitting) return;
+      if (isSubmitting || isLoading) return;
 
       if (!validateForm()) {
         alert("Please enter all values correctly.");
@@ -221,11 +245,13 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
         setIsSubmitting(false);
       }
     },
-    [formData, productType, isSubmitting, validateForm, onClose]
+    [formData, type, isSubmitting, isLoading, validateForm, onClose, getApiInfo, initialFormData]
   );
 
   // Confirm 버튼 로직 (추가 + 수정 둘 다)
   const handleConfirm = useCallback(async () => {
+    if (isSubmitting || isLoading) return;
+
     if (modalType.value === "add") {
       // Add일 때는 handleSave (POST)
       await handleSave(false);
@@ -254,16 +280,16 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
         setIsSubmitting(false);
       }
     }
-  }, [modalType, validateForm, productType, id, onClose, formData]);
+  }, [modalType, validateForm, type, id, onClose, formData, getApiInfo, isSubmitting, isLoading]);
 
   // 모달 밖 클릭 시 닫기
   const handleOverlayClick = useCallback(
     (e) => {
-      if (e.target === e.currentTarget && onClose) {
+      if (e.target === e.currentTarget && onClose && !isSubmitting && !isLoading) {
         onClose();
       }
     },
-    [onClose]
+    [onClose, isSubmitting, isLoading]
   );
 
   // card && CHECK일 때 비활성화
@@ -284,8 +310,8 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
                 placeholder={t("pleaseSelect")}
                 itemArray={bankArray}
                 isWallet={true}
-                onSelect={(item) => handleChange("bank", item.value)}
-                selectedValue={bankArray.find((item) => item.value === formData.bank)}
+                onSelect={(name, value) => handleChange("bank", value)}
+                selectedValue={formData.bank}
               />
               {errors.bank && <J.ValidText>{errors.bank}</J.ValidText>}
             </S.WalletLabel>
@@ -341,19 +367,21 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
                     <S.PeriodInput
                       name="startDate"
                       id="startDate"
-                      placeholder="MMYYYY"
-                      value={formData.startDate}
+                      placeholder="MM/YYYY"
+                      value={formatDate(formData.startDate)}
                       onChange={(e) => handleChange("startDate", e.target.value)}
                       disabled={isSubmitting}
+                      inputMode="numeric"
                     />
                     <S.PeriodBar />
                     <S.PeriodInput
                       name="endDate"
                       id="endDate"
-                      placeholder="MMYYYY"
-                      value={formData.startDate}
-                      onChange={(e) => handleChange("startDate", e.target.value)}
+                      placeholder="MM/YYYY"
+                      value={formatDate(formData.endDate)}
+                      onChange={(e) => handleChange("endDate", e.target.value)}
                       disabled={isSubmitting}
+                      inputMode="numeric"
                     />
                   </S.PeriodWrapper>
                   {(errors.startDate || errors.endDate) && (
@@ -369,6 +397,7 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
                       value={formData.monthlyPay}
                       onChange={(e) => handleChange("monthlyPay", e.target.value)}
                       disabled={isSubmitting}
+                      inputMode="numeric"
                     />
                     <S.MonthlyMark>&#8361;</S.MonthlyMark>
                   </S.InputWrapper>
@@ -390,6 +419,7 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
                       value={formData.paymentDate}
                       onChange={(e) => handleChange("paymentDate", e.target.value)}
                       disabled={isPaymentDateDisabled || isSubmitting}
+                      inputMode="numeric"
                     />
                     <S.DDMark>DD</S.DDMark>
                     <S.DayMark>Day</S.DayMark>
