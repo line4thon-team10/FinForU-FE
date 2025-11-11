@@ -1,8 +1,9 @@
 import { useTranslation } from "react-i18next";
 import * as S from "./WalletStyle";
 import { useHeaderStore } from "../../stores/headerStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import GoToLogin from "../../components/go-to-login/GoToLogin";
+import WalletModal from "./WalletModal/WalletModal";
 
 export default function Wallet() {
   const { t, i18n } = useTranslation();
@@ -16,14 +17,57 @@ export default function Wallet() {
     });
   }, [setHeaderConfig, i18n.language]);
 
+  // 모달에 넘길 props 값
+  // productType
+  const productChecking = { value: "checking", label: t("checkingAccount") };
+  const productSavings = { value: "savings", label: t("savingsAccount") };
+  const productCard = { value: "card", label: t("card") };
+  // modalType
+  const modalAdd = { value: "add", label: t("add") };
+  const modalEdit = { value: "edit", label: t("edit") };
+
+  // 모달 제어용 상태
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    type: null,
+    modalType: null,
+    id: null,
+  });
+
+  const closeModal = () => {
+    setModalState({
+      isOpen: false,
+      type: null,
+      modalType: null,
+      id: null,
+    });
+  };
+
+  const openModal = (typeValue, modalValue, id = null) => {
+    setModalState({
+      isOpen: true,
+      type: typeValue,
+      modalType: modalValue,
+      id: id,
+    });
+  };
+
   // 로그인 상태 확인해서 비로그인 상태면 로그인 필요 컴포넌트 띄우기
   // return <GoToLogin />;
   return (
     <S.Container>
+      {modalState.isOpen && modalState.type && modalState.modalType && (
+        <WalletModal
+          type={modalState.type}
+          modalType={modalState.modalType}
+          id={modalState.id}
+          onClose={closeModal}
+        />
+      )}
       <S.CheckingBox>
         <S.TextBox>
           <S.Title>{t("checkingAccount")}</S.Title>
-          <S.AddBtn>
+          <S.AddBtn onClick={() => openModal(productChecking, modalAdd)}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="14"
@@ -58,7 +102,7 @@ export default function Wallet() {
           </svg>
           <S.Placeholder>{t("pleaseSelect")}</S.Placeholder>
           <S.BtnWrapper>
-            <button>
+            <button onClick={() => openModal(productChecking, modalEdit, 123)}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="17"
@@ -69,8 +113,8 @@ export default function Wallet() {
                 <path
                   d="M9.64247 3.96181L1.87747 11.7268L1.21997 15.6251L5.11914 14.9668L12.8833 7.20264L15.4308 4.65597L12.19 1.41431L9.64247 3.96181ZM9.64247 3.96181L12.8833 7.20347"
                   stroke="#919191"
-                  stroke-width="2"
-                  stroke-linecap="square"
+                  strokeWidth="2"
+                  strokeLinecap="square"
                 />
               </svg>
             </button>
@@ -94,7 +138,7 @@ export default function Wallet() {
       <S.SavingsBox>
         <S.TextBox>
           <S.Title>{t("savingsAccount")}</S.Title>
-          <S.AddBtn>
+          <S.AddBtn onClick={() => openModal(productSavings, modalAdd)}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="14"
@@ -132,7 +176,7 @@ export default function Wallet() {
             <S.AccountDesc>savings - Sunny Bank</S.AccountDesc>
           </S.SavingsNCardBox>
           <S.BtnWrapper>
-            <button>
+            <button onClick={() => openModal(productSavings, modalEdit, 123)}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="17"
@@ -143,8 +187,8 @@ export default function Wallet() {
                 <path
                   d="M9.64247 3.96181L1.87747 11.7268L1.21997 15.6251L5.11914 14.9668L12.8833 7.20264L15.4308 4.65597L12.19 1.41431L9.64247 3.96181ZM9.64247 3.96181L12.8833 7.20347"
                   stroke="#919191"
-                  stroke-width="2"
-                  stroke-linecap="square"
+                  strokeWidth="2"
+                  strokeLinecap="square"
                 />
               </svg>
             </button>
@@ -168,7 +212,7 @@ export default function Wallet() {
       <S.CardBox>
         <S.TextBox>
           <S.Title>{t("card")}</S.Title>
-          <S.AddBtn>
+          <S.AddBtn onClick={() => openModal(productCard, modalAdd)}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="14"
@@ -196,20 +240,20 @@ export default function Wallet() {
               <path
                 d="M18.3281 4.3125H4.67188C3.28253 4.3125 2.15625 5.43878 2.15625 6.82812V16.1719C2.15625 17.5612 3.28253 18.6875 4.67188 18.6875H18.3281C19.7175 18.6875 20.8438 17.5612 20.8438 16.1719V6.82812C20.8438 5.43878 19.7175 4.3125 18.3281 4.3125Z"
                 stroke="#FF8200"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M2.15625 8.625H20.8438M5.75 13.4766H7.90625V14.375H5.75V13.4766Z"
                 stroke="#FF8200"
-                stroke-width="1.875"
-                stroke-linejoin="round"
+                strokeWidth="1.875"
+                strokeLinejoin="round"
               />
             </svg>
           </S.CardCircle>
           <S.Placeholder>{t("pleaseSelect")}</S.Placeholder>
           <S.BtnWrapper>
-            <button>
+            <button onClick={() => openModal(productCard, modalEdit, 123)}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="17"
@@ -220,8 +264,8 @@ export default function Wallet() {
                 <path
                   d="M9.64247 3.96181L1.87747 11.7268L1.21997 15.6251L5.11914 14.9668L12.8833 7.20264L15.4308 4.65597L12.19 1.41431L9.64247 3.96181ZM9.64247 3.96181L12.8833 7.20347"
                   stroke="#919191"
-                  stroke-width="2"
-                  stroke-linecap="square"
+                  strokeWidth="2"
+                  strokeLinecap="square"
                 />
               </svg>
             </button>
