@@ -2,11 +2,13 @@ import styled from "styled-components";
 
 export const Container = styled.div`
   width: 100%;
+  display: flex;
+  align-items: center;
   position: relative;
   border-radius: 0.625rem;
   border: 2px solid var(--color-input-gray);
   background-color: #fff;
-  height: 3.125rem;
+  height: ${({ $isWallet }) => ($isWallet ? "2.5rem" : "3.125rem")};
   padding: 0.9375rem 1.25rem;
   font-size: 0.9375rem;
   font-weight: 400;
