@@ -60,6 +60,7 @@ export default function Wallet() {
   // modalType
   const modalAdd = { value: "add", label: t("add") };
   const modalEdit = { value: "edit", label: t("edit") };
+  const modalDelete = { value: "delete", label: t("delete") };
 
   // 모달 제어용 상태
   const [modalState, setModalState] = useState({
@@ -91,14 +92,19 @@ export default function Wallet() {
   // return <GoToLogin />;
   return (
     <S.Container>
-      {modalState.isOpen && modalState.type && modalState.modalType && (
-        <WalletModal
-          type={modalState.type}
-          modalType={modalState.modalType}
-          id={modalState.id}
-          onClose={closeModal}
-        />
-      )}
+      {modalState.isOpen &&
+        modalState.type &&
+        modalState.modalType &&
+        (modalState.modalType.value === "add" || modalState.modalType.value === "edit" ? (
+          <WalletModal
+            type={modalState.type}
+            modalType={modalState.modalType}
+            id={modalState.id}
+            onClose={closeModal}
+          />
+        ) : (
+          <DeleteModal type={modalState.type} id={modalState.id} onClose={closeModal} />
+        ))}
       <S.CheckingBox>
         <S.TextBox>
           <S.Title>{t("checkingAccount")}</S.Title>
@@ -210,7 +216,7 @@ export default function Wallet() {
                   </svg>
                 </button>
                 {/* 삭제 버튼 */}
-                <button>
+                <button onClick={() => openModal(productChecking, modalDelete, account.checkingId)}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="14"
@@ -344,7 +350,7 @@ export default function Wallet() {
                   </svg>
                 </button>
                 {/* 삭제 버튼 */}
-                <button>
+                <button onClick={() => openModal(productSavings, modalDelete, account.savingId)}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="14"
@@ -490,7 +496,7 @@ export default function Wallet() {
                   </svg>
                 </button>
                 {/* 삭제 버튼 */}
-                <button>
+                <button onClick={() => openModal(productCard, modalDelete, card.cardId)}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="14"
