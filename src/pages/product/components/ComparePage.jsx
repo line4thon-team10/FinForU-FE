@@ -45,11 +45,13 @@ const TYPE_LABELS = {
   deposit: "Deposit",
   installment: "Installment",
   savings: "Savings",
+  saving: "Savings",
 };
 
 const TYPE_ORDER = {
   deposit: 0,
   installment: 1,
+  saving: 1,
   card: 2,
 };
 
@@ -124,7 +126,7 @@ const getComparisonRows = (type, onVisitWebsite) => {
     ];
   }
 
-  if (type === "installment") {
+  if (type === "installment" || type === "saving" || type === "savings") {
     return [
       {
         id: "baseRate",
@@ -297,11 +299,45 @@ function renderSelection({
   );
 }
 
-function renderResult({ selection, onBackToSelect, onClose, onVisitWebsite }) {
-  const orderedProducts = [...selection].sort(
+function renderResult({
+  selection,
+  comparisonProducts,
+  isComparisonLoading,
+  comparisonError,
+  onBackToSelect,
+  onClose,
+  onVisitWebsite,
+}) {
+  if (isComparisonLoading) {
+    return (
+      <S.CompareEmptyState style={{ padding: "2rem 1rem" }}>
+        Comparing selected products...
+      </S.CompareEmptyState>
+    );
+  }
+
+  if (comparisonError) {
+    return (
+      <S.CompareEmptyState style={{ padding: "2rem 1rem" }}>
+        Failed to load comparison data. Please try again later.
+      </S.CompareEmptyState>
+    );
+  }
+
+  const sourceProducts =
+    comparisonProducts && comparisonProducts.length > 0 ? comparisonProducts : selection;
+
+  if (!sourceProducts || sourceProducts.length === 0) {
+    return (
+      <S.CompareEmptyState style={{ padding: "2rem 1rem" }}>
+        Comparison data will appear here once products are selected.
+      </S.CompareEmptyState>
+    );
+  }
+
+  const orderedProducts = [...sourceProducts].sort(
     (a, b) => (TYPE_ORDER[a.type] ?? 3) - (TYPE_ORDER[b.type] ?? 3)
   );
-  const currentTypeLabel = getTypeLabel(orderedProducts[0]?.type);
   const comparisonRows = getComparisonRows(orderedProducts[0]?.type, onVisitWebsite);
   const columnCount = Math.max(orderedProducts.length, 1);
 

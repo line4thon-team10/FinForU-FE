@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Navigation from "../../components/Navigation/Navigation";
 import RecommendIcon from "./icons/RecommendIcon.svg";
 import { useHeaderStore } from "../../stores/headerStore";
+import api from "../../api/api";
 import AllProductsSection from "./components/AllProductsSection";
 import RecommendationsSection from "./components/RecommendationsSection";
 import PreferenceEditorSheet from "./components/PreferenceEditorSheet";
@@ -11,26 +12,107 @@ import ComparePage from "./components/ComparePage";
 import ProductDetailSheet from "./components/ProductDetailSheet";
 import * as S from "./ProductStyle";
 
+const fetchAllProducts = async (params = {}) => {
+  const response = await api.get("/api/products", { params });
+  return response.data?.data ?? {};
+};
+
+const fetchProductDetail = async ({ type, id }) => {
+  const response = await api.get(`/api/products/${type}/${id}`);
+  return response.data?.data ?? null;
+};
+
+const fetchProductComparison = async ({ type, productIds }) => {
+  const params = {
+    type,
+    productIds: Array.isArray(productIds) ? productIds.join(",") : productIds,
+  };
+  const response = await api.get("/api/products/comparison/details", { params });
+  return response.data?.data ?? null;
+};
+
+const BANK_ID_MAP = {
+  "KB Bank": "kb_bank",
+  "Woori Bank": "woori_bank",
+  "Hana Bank": "hana_bank",
+  "Shinhan Bank": "shinhan_bank",
+};
+
+const BANK_OPTIONS = [
+  { id: "kb_bank", label: "KB Bank" },
+  { id: "woori_bank", label: "Woori Bank" },
+  { id: "hana_bank", label: "Hana Bank" },
+  { id: "shinhan_bank", label: "Shinhan Bank" },
+  { id: "others", label: "Others" },
+];
+
+const PRODUCT_TYPE_OPTIONS = [
+  { id: "card", label: "Card" },
+  { id: "deposit", label: "Deposit" },
+  { id: "saving", label: "Savings" },
+];
+
+const API_PRODUCT_TYPE_MAP = {
+  card: "CARD",
+  deposit: "DEPOSIT",
+  saving: "SAVING",
+  savings: "SAVING",
+};
+
+const PREFERENCE_TYPE_LABELS = {
+  CARD: "Card",
+  DEPOSIT: "Deposit",
+  SAVING: "Installment Savings",
+};
+
+const PREFERENCE_PERIOD_LABELS = {
+  SHORT_TERM: "Short-term (~1 year)",
+  MID_TERM: "Mid-term (~3 year)",
+  LONG_TERM: "Long-term (3+ year)",
+};
+
+const PREFERENCE_SAVING_PURPOSE_LABELS = {
+  EMERGENCY_FUND: "Emergency Fund",
+  EDUCATION: "Education",
+  HOME_PURCHASE: "Home Purchase",
+  MONTHLY_EXPENSES: "Monthly Expenses",
+  RETIREMENT: "Retirement",
+  TRAVEL: "Travel",
+  OTHERS: "Others",
+};
+
+const PREFERENCE_CARD_PURPOSE_LABELS = {
+  CREDIT_BUILDING: "Credit Building",
+  DAILY_SPENDING: "Daily Spending",
+  EDUCATION: "Education",
+  REWARDS_MAXIMIZATION: "Rewards Maximization",
+  TRAVEL: "Travel",
+  OTHERS: "Others",
+};
+
+const PREFERENCE_INCOME_LABELS = {
+  LOW: "Low",
+  MEDIUM: "Medium",
+  HIGH: "High",
+};
+
+const PREFERENCE_BANK_LABELS = {
+  KB_BANK: "KB Bank",
+  WOORI_BANK: "Woori Bank",
+  HANA_BANK: "Hana Bank",
+  SHINHAN_BANK: "Shinhan Bank",
+};
+
 const FILTER_CONFIG = {
   bank: {
     key: "bank",
     label: "Bank",
-    options: [
-      { id: "sunny", label: "Sunny Bank" },
-      { id: "greenTree", label: "GreenTree Bank" },
-      { id: "deepBlue", label: "DeepBlue Bank" },
-      { id: "sky", label: "SkyBank" },
-      { id: "others", label: "Others" },
-    ],
+    options: BANK_OPTIONS,
   },
   productType: {
     key: "productType",
     label: "Product Type",
-    options: [
-      { id: "card", label: "Card" },
-      { id: "deposit", label: "Deposit" },
-      { id: "installment", label: "Installment Savings" },
-    ],
+    options: PRODUCT_TYPE_OPTIONS,
   },
   interest: {
     key: "interest",
@@ -54,260 +136,351 @@ const FILTER_CONFIG = {
   },
 };
 
-const PRODUCT_CATALOG = [
-  {
-    id: "prod-1",
-    bankId: "sunny",
-    bankName: "Sunny Bank",
-    name: "Savings Plus",
-    type: "deposit",
+const mapBankNameToId = (bankName = "") => BANK_ID_MAP[bankName] ?? "others";
+
+const formatRateValue = (value) => {
+  if (typeof value !== "number") {
+    return "-";
+  }
+  return `${value}%`;
+};
+
+const formatTermLabel = (termMonths) => {
+  if (termMonths === -1) return "36+ months";
+  if (!termMonths || termMonths <= 0) return "No fixed term";
+  return `${termMonths} months`;
+};
+
+const formatCurrencyKRW = (value) => {
+  if (value === null || value === undefined) return "-";
+  if (typeof value === "number") {
+    if (value === 0) return "₩0";
+    return `₩${value.toLocaleString()}`;
+  }
+  return String(value);
+};
+
+const appendHighlightSuffix = (value, isHighlighted) => {
+  if (!value || value === "-" || !isHighlighted) return value;
+  return `${value} ★`;
+};
+
+const normalizePreferenceValue = (value, labelsMap) => {
+  if (!value) return "";
+  return labelsMap[value] ?? value;
+};
+
+const normalizePreferenceArray = (values, labelsMap) => {
+  if (!Array.isArray(values)) return [];
+  return values
+    .map((value) => labelsMap[value] ?? value)
+    .filter((value, index, array) => typeof value === "string" && value.trim().length > 0 && array.indexOf(value) === index);
+};
+
+const derivePeriodKey = (termMonths) => {
+  if (termMonths === null || termMonths === undefined) return null;
+  if (termMonths === -1 || termMonths > 36) return "long";
+  if (termMonths > 12) return "mid";
+  return "short";
+};
+
+const buildCardProduct = (item) => {
+  const benefit = item.feeAndBenefit || "See bank for benefits";
+  const bankName = item.bankName || "Unknown Bank";
+  return {
+    id: `card-${item.id}`,
+    sourceId: item.id,
+    bankId: mapBankNameToId(item.bankName),
+    bankName,
+    name: item.name,
+    type: "card",
     period: "short",
-    interestRange: { min: 2.5, max: 4.5 },
-    termLabel: "12-month",
-    tags: ["Fixed deposit", "Auto renewal"],
-    highlight: "4.5% APY",
-    description:
-      "Flexible deposit with competitive rates and auto-renewal. Ideal for short-term saving goals.",
-    keyFeatures: "Flexible deposit amounts ideal for beginners, preferential rates when monthly goals are met, and optional automatic renewal.",
+    interestRange: { min: null, max: null },
+    termLabel: "Card product",
+    highlight: benefit,
+    keyFeatures: benefit,
+    description: benefit,
+    tags: [],
+    heroNote: "",
+    website: item.officialUrl || "",
     detailSections: [
       {
-        title: "Interest Rate",
+        title: "Card Details",
         rows: [
-          { label: "Base Rate", value: "2.5% APY" },
-          { label: "Preferential Rate", value: "Up to 4.5% APY" },
-        ],
-      },
-      {
-        title: "Deposit Details",
-        rows: [
-          { label: "Deposit Term", value: "12 months" },
-          { label: "Minimum Deposit", value: "₩100,000" },
-          { label: "Monthly Limit", value: "₩500,000" },
-        ],
-      },
-      {
-        title: "Eligibility",
-        rows: [
-          { label: "Age", value: "18+ years" },
-          { label: "Documents", value: "Valid ID, Proof of residence" },
-        ],
-      },
-    ],
-    heroNote: "Consistent rate boosts when you complete monthly savings goals.",
-    website: "https://sunnybank.com",
-  },
-  {
-    id: "prod-2",
-    bankId: "greenTree",
-    bankName: "GreenTree Bank",
-    name: "Flexible Plus",
-    type: "installment",
-    period: "mid",
-    interestRange: { min: 3.6, max: 5.8 },
-    termLabel: "24-month",
-    tags: ["Installment", "Goal tracker"],
-    highlight: "5.8% APY",
-    description:
-      "Automated installment savings account designed to help you reach medium-term financial goals.",
-    keyFeatures: "Bonus interest rewards consistent contributions, in-app goal tracking with reminders, and a flexible skip-one-month benefit twice a year.",
-    detailSections: [
-      {
-        title: "Interest Rate",
-        rows: [
-          { label: "Base Rate", value: "3.6% APY" },
-          { label: "Maximum Rate", value: "Up to 5.8% APY" },
-        ],
-      },
-      {
-        title: "Saving Details",
-        rows: [
-          { label: "Saving Term", value: "24 months" },
-          { label: "Monthly Limit", value: "₩1,000,000" },
-        ],
-      },
-      {
-        title: "Eligibility",
-        rows: [
-          { label: "Income", value: "Any (proof required)" },
-          { label: "Documents", value: "Valid ID, Employment certificate" },
-        ],
-      },
-    ],
-    heroNote: "Keep your streak to unlock the top tier interest rate every quarter.",
-    website: "https://greentreebank.com",
-  },
-  {
-    id: "prod-3",
-    bankId: "deepBlue",
-    bankName: "DeepBlue Bank",
-    name: "Dream Big Savings",
-    type: "deposit",
-    period: "mid",
-    interestRange: { min: 2.8, max: 4.8 },
-    termLabel: "18-month",
-    tags: ["Bonus interest", "Travel saver"],
-    highlight: "4.8% APY",
-    description:
-      "Designed for long-term savers, with quarterly bonuses and travel perks for loyal customers.",
-    keyFeatures: "Earn travel mileage for every ₩300,000 saved, unlock quarterly booster rates when deposits grow, and enjoy penalty-free partial withdrawals twice annually.",
-    detailSections: [
-      {
-        title: "Interest Rate",
-        rows: [
-          { label: "Base Rate", value: "2.8% APY" },
-          { label: "Bonus Rate", value: "Up to 4.8% APY" },
-        ],
-      },
-      {
-        title: "Deposit Details",
-        rows: [
-          { label: "Deposit Term", value: "18 months" },
-          { label: "Minimum Deposit", value: "₩300,000" },
-          { label: "Partial Withdrawal", value: "Up to twice / year" },
+          { label: "Bank", value: bankName },
+          { label: "Benefit", value: benefit },
         ],
       },
       {
         title: "Benefits",
+        rows: [{ label: "Summary", value: benefit }],
+      },
+    ],
+    raw: item,
+  };
+};
+
+const buildDepositProduct = (item) => {
+  const bankName = item.bankName || "Unknown Bank";
+  const maxRate = typeof item.maxInterestRate === "number" ? item.maxInterestRate : null;
+  const minRate = typeof item.minInterestRate === "number" ? item.minInterestRate : maxRate;
+  const period = derivePeriodKey(item.termMonths);
+  const termLabel = formatTermLabel(item.termMonths);
+  const highlight =
+    maxRate !== null ? `Up to ${formatRateValue(maxRate)}` : item.isFlexible ? "Flexible deposit" : "Fixed deposit";
+  const featureLead =
+    maxRate !== null ? `Earn up to ${formatRateValue(maxRate)}` : item.isFlexible ? "Enjoy flexible deposits" : "Explore this deposit";
+
+  return {
+    id: `deposit-${item.id}`,
+    sourceId: item.id,
+    bankId: mapBankNameToId(item.bankName),
+    bankName,
+    name: item.name,
+    type: "deposit",
+    period,
+    interestRange: {
+      min: typeof minRate === "number" ? minRate : 0,
+      max: typeof maxRate === "number" ? maxRate : typeof minRate === "number" ? minRate : 0,
+    },
+    termLabel,
+    highlight,
+    keyFeatures: `${featureLead} with a ${termLabel.toLowerCase()}.`,
+    description: item.isFlexible ? "Flexible term deposit option." : "Fixed-term deposit.",
+    tags: [],
+    heroNote: "",
+    website: item.officialUrl || "",
+    detailSections: [
+      {
+        title: "Deposit Details",
         rows: [
-          { label: "Travel Miles", value: "Earn 200 miles / ₩300,000" },
-          { label: "Loyalty Perks", value: "Upgrade to Premium service desk" },
+          { label: "Bank", value: bankName },
+          { label: "Maximum Rate", value: formatRateValue(maxRate) },
+          { label: "Deposit Term", value: termLabel },
+          { label: "Flexible", value: item.isFlexible ? "Yes" : "No" },
         ],
       },
     ],
-    heroNote: "Save for your next adventure and unlock travel perks along the way.",
-    website: "https://deepbluebank.com",
-  },
-  {
-    id: "prod-4",
-    bankId: "sunny",
-    bankName: "Sunny Bank",
-    name: "Travel Plus Card",
+    raw: item,
+  };
+};
+
+const buildSavingProduct = (item) => {
+  const bankName = item.bankName || "Unknown Bank";
+  const maxRate = typeof item.maxInterestRate === "number" ? item.maxInterestRate : null;
+  const minRate = typeof item.minInterestRate === "number" ? item.minInterestRate : maxRate;
+  const period = derivePeriodKey(item.termMonths);
+  const termLabel = formatTermLabel(item.termMonths);
+  const highlightParts = [];
+  if (maxRate !== null) {
+    highlightParts.push(`Up to ${formatRateValue(maxRate)}`);
+  }
+  if (typeof item.maxMonthly === "number") {
+    highlightParts.push(`₩${item.maxMonthly.toLocaleString()} monthly`);
+  }
+  const featureLead =
+    maxRate !== null ? `Save regularly and earn up to ${formatRateValue(maxRate)}` : item.isFlexible ? "Flexible savings option" : "Regular savings plan";
+
+  return {
+    id: `saving-${item.id}`,
+    sourceId: item.id,
+    bankId: mapBankNameToId(item.bankName),
+    bankName,
+    name: item.name,
+    type: "saving",
+    period,
+    interestRange: {
+      min: typeof minRate === "number" ? minRate : 0,
+      max: typeof maxRate === "number" ? maxRate : typeof minRate === "number" ? minRate : 0,
+    },
+    termLabel,
+    highlight: highlightParts.join(" · ") || (item.isFlexible ? "Flexible savings" : "Installment savings"),
+    keyFeatures: `${featureLead} over a ${termLabel.toLowerCase()}.`,
+    description: item.isFlexible ? "Flexible savings account." : "Regular savings plan.",
+    tags: [],
+    heroNote: "",
+    website: item.officialUrl || "",
+    detailSections: [
+      {
+        title: "Saving Details",
+        rows: [
+          { label: "Bank", value: bankName },
+          { label: "Maximum Rate", value: formatRateValue(maxRate) },
+          { label: "Saving Term", value: termLabel },
+          { label: "Flexible", value: item.isFlexible ? "Yes" : "No" },
+          {
+            label: "Monthly Limit",
+            value: typeof item.maxMonthly === "number" ? `₩${item.maxMonthly.toLocaleString()}` : "-",
+          },
+        ],
+      },
+    ],
+    raw: item,
+  };
+};
+
+const normalizeProducts = (data) => {
+  if (!data || typeof data !== "object") return [];
+  const cards = Array.isArray(data.cards) ? data.cards.map(buildCardProduct) : [];
+  const deposits = Array.isArray(data.deposits) ? data.deposits.map(buildDepositProduct) : [];
+  const savings = Array.isArray(data.savings) ? data.savings.map(buildSavingProduct) : [];
+  return [...cards, ...deposits, ...savings];
+};
+
+const buildCardComparisonProducts = (items = [], highlights = {}) =>
+  items.map((item) => {
+    const domesticFee = appendHighlightSuffix(
+      formatCurrencyKRW(item.domesticAnnualFee),
+      highlights?.lowestDomesticId === item.id
+    );
+    const internationalFee = appendHighlightSuffix(
+      formatCurrencyKRW(item.internationalAnnualFee),
+      highlights?.lowestInternationalId === item.id
+    );
+
+    const benefitRows = Array.isArray(item.benefit)
+      ? item.benefit.map((benefit, index) => ({
+        label: `Benefit ${index + 1}`,
+        value: benefit,
+      }))
+      : [];
+
+    return {
+      id: `compare-card-${item.id}`,
+      sourceId: item.id,
     type: "card",
-    period: "short",
-    interestRange: { min: 0, max: 0 },
-    termLabel: "Revolving",
-    tags: ["Travel perks", "Cashback"],
-    highlight: "No annual fee (Year 1)",
-    description:
-      "Earn rewards on travel bookings and dining world-wide. Includes lounge access vouchers every quarter.",
-    keyFeatures: "Earn 3% cashback on overseas spend, receive two complimentary lounge visits per year, and stay protected with travel insurance up to ₩100,000,000.",
+      name: item.name,
+      bankName: item.bank,
+      website: item.website,
     detailSections: [
       {
         title: "Annual Fee",
         rows: [
-          { label: "Domestic", value: "₩15,000" },
-          { label: "International", value: "₩25,000" },
+            { label: "Domestic", value: domesticFee },
+            { label: "International", value: internationalFee },
         ],
       },
       {
-        title: "Travel Benefits",
-        rows: [
-          { label: "Lounge Access", value: "2 visits / year" },
-          { label: "Travel Insurance", value: "Up to ₩100,000,000" },
-          { label: "Airline Partners", value: "5 global alliances" },
-        ],
-      },
-      {
-        title: "Rewards",
-        rows: [
-          { label: "Overseas Spend", value: "3% cashback" },
-          { label: "Domestic Dining", value: "2% cashback" },
-          { label: "Other Spend", value: "0.8% cashback" },
-        ],
-      },
-    ],
-    heroNote: "Perfect for frequent flyers looking for lounge comfort and strong cashback.",
-    website: "https://sunnybank.com/travel-plus",
-  },
-  {
-    id: "prod-5",
-    bankId: "sky",
-    bankName: "SkyBank",
-    name: "Future Builder",
-    type: "installment",
-    period: "long",
-    interestRange: { min: 4.1, max: 6.9 },
-    termLabel: "36-month",
-    tags: ["Long-term", "Goal based"],
-    highlight: "6.9% APY",
-    description:
-      "Long-term installment savings with flexible pause options and milestone bonus payouts.",
-    keyFeatures: "Receive milestone bonuses every six months, pause contributions up to three months without losing your base rate, and stay motivated with an integrated goal tracker.",
+          title: "Benefits",
+          rows: benefitRows,
+        },
+      ],
+    };
+  });
+
+const buildDepositComparisonProducts = (items = [], highlights = {}) =>
+  items.map((item) => {
+    const baseRate = appendHighlightSuffix(
+      formatRateValue(item.baseRate),
+      highlights?.bestBaseRateId === item.id
+    );
+    const maxRate = appendHighlightSuffix(
+      formatRateValue(item.maxRate),
+      highlights?.bestMaxRateId === item.id
+    );
+    const minDeposit = appendHighlightSuffix(
+      formatCurrencyKRW(item.minDepositAmount),
+      highlights?.lowestMinDepositId === item.id
+    );
+
+    return {
+      id: `compare-deposit-${item.id}`,
+      sourceId: item.id,
+      type: "deposit",
+      name: item.name,
+      bankName: item.bank,
+      website: item.website,
     detailSections: [
       {
         title: "Interest Rate",
         rows: [
-          { label: "Base Rate", value: "4.1% APY" },
-          { label: "Maximum Rate", value: "Up to 6.9% APY" },
+            { label: "Base Rate", value: baseRate },
+            { label: "Maximum Rate", value: maxRate },
         ],
       },
       {
-        title: "Saving Details",
+          title: "Deposit Details",
         rows: [
-          { label: "Saving Term", value: "36 months" },
-          { label: "Monthly Deposit", value: "₩300,000 – ₩1,500,000" },
-        ],
-      },
-      {
-        title: "Milestone Bonus",
-        rows: [
-          { label: "6 Months", value: "₩20,000 bonus" },
-          { label: "12 Months", value: "₩50,000 bonus" },
-          { label: "24 Months", value: "₩80,000 bonus" },
-        ],
-      },
-    ],
-    heroNote: "Stay on track toward big goals with milestone bonuses and pause flexibility.",
-    website: "https://skybank.com/future-builder",
-  },
-  {
-    id: "prod-6",
-    bankId: "others",
-    bankName: "Global Finance",
-    name: "Cashback Platinum",
-    type: "card",
-    period: "short",
-    interestRange: { min: 0, max: 0 },
-    termLabel: "Revolving",
-    tags: ["Premium", "Rewards"],
-    highlight: "5% cashback",
-    description:
-      "Premium credit card that rewards lifestyle spending with airport lounge passes and concierge services.",
-    keyFeatures: "Get 5% cashback on rotating lifestyle categories, unlock unlimited lounge access with qualifying spend, and rely on dedicated concierge support with purchase protection.",
+            { label: "Deposit Term", value: formatTermLabel(item.termMonths) },
+            { label: "Flexible", value: item.isFlexible ? "Yes" : "No" },
+            { label: "Minimum Deposit", value: minDeposit },
+          ],
+        },
+      ],
+    };
+  });
+
+const buildSavingComparisonProducts = (items = [], highlights = {}) =>
+  items.map((item) => {
+    const baseRate = appendHighlightSuffix(
+      formatRateValue(item.baseRate),
+      highlights?.bestBaseRateId === item.id
+    );
+    const maxRate = appendHighlightSuffix(
+      formatRateValue(item.maxRate),
+      highlights?.bestMaxRateId === item.id
+    );
+    const monthlyLimit = appendHighlightSuffix(
+      formatCurrencyKRW(item.maxMonthly),
+      highlights?.lowestMaxMonthlyId === item.id
+    );
+
+    return {
+      id: `compare-saving-${item.id}`,
+      sourceId: item.id,
+      type: "saving",
+      name: item.name,
+      bankName: item.bank,
+      website: item.website,
     detailSections: [
       {
-        title: "Annual Fee",
+          title: "Interest Rate",
         rows: [
-          { label: "Domestic", value: "₩40,000" },
-          { label: "International", value: "₩55,000" },
+            { label: "Base Rate", value: baseRate },
+            { label: "Maximum Rate", value: maxRate },
         ],
       },
       {
-        title: "Lifestyle Rewards",
+          title: "Deposit Details",
         rows: [
-          { label: "Dining", value: "5% cashback" },
-          { label: "Cafes", value: "5% cashback" },
-          { label: "Groceries", value: "3% cashback" },
-        ],
-      },
-      {
-        title: "Protection",
-        rows: [
-          { label: "Purchase Protection", value: "Up to ₩3,000,000 per claim" },
-          { label: "Extended Warranty", value: "+12 months" },
-        ],
-      },
-    ],
-    heroNote: "Maximize your lifestyle rewards with rotating 5% categories and premium perks.",
-    website: "https://globalfinance.com/cashback-platinum",
-  },
-];
+            { label: "Deposit Term", value: formatTermLabel(item.termMonths) },
+            { label: "Flexible", value: item.isFlexible ? "Yes" : "No" },
+            { label: "Monthly Limit", value: monthlyLimit },
+          ],
+        },
+      ],
+    };
+  });
 
-const RECOMMENDED_MOCK = [
-  { id: "rec-1", productId: "prod-1", bankName: "Sunny Bank", name: "Low-Fee Credit Card", description: "Enjoy 0% APR for 12 months and no annual fee.", action: "Learn More" },
-  { id: "rec-2", productId: "prod-2", bankName: "DeepBlue Bank", name: "Flexible Savings Account", description: "Boost your savings with flexible monthly targets.", action: "Learn More" },
-  { id: "rec-3", productId: "prod-3", bankName: "SkyBank", name: "Travel Rewards Card", description: "2x miles on every purchase, plus lounge access.", action: "Learn More" },
-];
+const normalizeComparisonResponse = (type, payload) => {
+  if (!payload || typeof payload !== "object") {
+    return { products: [], highlights: null };
+  }
+
+  const highlights = payload.highlights ?? {};
+
+  switch (type) {
+    case "card":
+      return {
+        products: buildCardComparisonProducts(payload.cards ?? [], highlights),
+        highlights,
+      };
+    case "deposit":
+      return {
+        products: buildDepositComparisonProducts(payload.deposits ?? [], highlights),
+        highlights,
+      };
+    case "saving":
+    case "savings":
+      return {
+        products: buildSavingComparisonProducts(payload.savings ?? [], highlights),
+        highlights,
+      };
+    default:
+      return { products: [], highlights };
+  }
+};
+
 
 const INITIAL_FILTERS = {
   bank: null,
@@ -327,8 +500,21 @@ const matchesProductFilters = (product, activeFilters) => {
   if (activeFilters.interest) {
     const option = FILTER_CONFIG.interest.options.find((opt) => opt.id === activeFilters.interest);
     if (option) {
-      const midValue = product.interestRange.max || product.interestRange.min;
+      const range = product.interestRange || {};
+      const hasNumericRange =
+        (typeof range.max === "number" && !Number.isNaN(range.max)) ||
+        (typeof range.min === "number" && !Number.isNaN(range.min));
+      if (!hasNumericRange) {
+        matchInterest = false;
+      } else {
+        const midValue =
+          typeof range.max === "number" && !Number.isNaN(range.max)
+            ? range.max
+            : typeof range.min === "number" && !Number.isNaN(range.min)
+              ? range.min
+              : 0;
       matchInterest = midValue >= option.min && midValue <= option.max;
+      }
     }
   }
 
@@ -345,21 +531,67 @@ const EMPTY_PREFERENCES = {
   savingsPeriod: "",
 };
 
+const mapPreferencesResponse = (data) => {
+  if (!data || typeof data !== "object") {
+    return { ...EMPTY_PREFERENCES };
+  }
+
+  const productTypes = normalizePreferenceArray(data.types, PREFERENCE_TYPE_LABELS);
+  const savingsPeriods = normalizePreferenceArray(data.periods, PREFERENCE_PERIOD_LABELS);
+  const savingsPurpose = normalizePreferenceValue(data.savingPurpose, PREFERENCE_SAVING_PURPOSE_LABELS);
+  const cardPurpose = normalizePreferenceValue(data.cardPurpose, PREFERENCE_CARD_PURPOSE_LABELS);
+  const incomeLevel = normalizePreferenceValue(data.income, PREFERENCE_INCOME_LABELS);
+  const preferredBank = normalizePreferenceValue(data.bank, PREFERENCE_BANK_LABELS);
+
+  return {
+    ...EMPTY_PREFERENCES,
+    productTypes,
+    savingsPeriods,
+    savingsPurpose,
+    cardPurpose,
+    incomeLevel,
+    preferredBank,
+    savingsPeriod: savingsPeriods[0] ?? "",
+  };
+};
+
 export default function Product() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { productId } = useParams();
   const setHeaderConfig = useHeaderStore((state) => state.setHeaderConfig);
+  const [allProducts, setAllProducts] = useState([]);
+  const [isProductsLoading, setIsProductsLoading] = useState(false);
+  const [productsError, setProductsError] = useState(null);
+  const [productsLoaded, setProductsLoaded] = useState(false);
+  const [detailData, setDetailData] = useState(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState(null);
+  const [comparisonProducts, setComparisonProducts] = useState([]);
+  const [comparisonHighlights, setComparisonHighlights] = useState(null);
+  const [isComparisonLoading, setIsComparisonLoading] = useState(false);
+  const [comparisonError, setComparisonError] = useState(null);
+
+  const resetComparisonData = useCallback(() => {
+    setComparisonProducts([]);
+    setComparisonHighlights(null);
+    setComparisonError(null);
+    setIsComparisonLoading(false);
+  }, []);
 
   const isCompareRoute = productId === "compare";
-  const detailProduct = !isCompareRoute && productId ? PRODUCT_CATALOG.find((item) => item.id === productId) : null;
+  const detailProduct = useMemo(() => {
+    if (isCompareRoute || !productId) return null;
+    return allProducts.find((item) => item.id === productId) || null;
+  }, [allProducts, isCompareRoute, productId]);
   const isDetailRoute = Boolean(productId && detailProduct);
 
   useEffect(() => {
+    if (!productsLoaded) return;
     if (productId && !detailProduct && !isCompareRoute) {
       navigate("/product", { replace: true });
     }
-  }, [productId, detailProduct, isCompareRoute, navigate]);
+  }, [productId, detailProduct, isCompareRoute, navigate, productsLoaded]);
 
   useEffect(() => {
     if (isCompareRoute) {
@@ -378,6 +610,72 @@ export default function Product() {
     });
   }, [setHeaderConfig, i18n.language, isCompareRoute, productId, t]);
 
+  useEffect(() => {
+    if (!isDetailRoute || !detailProduct) {
+      setDetailData(null);
+      setDetailError(null);
+      setIsDetailLoading(false);
+      return;
+    }
+
+    const typeKey = API_PRODUCT_TYPE_MAP[detailProduct.type];
+    const sourceId = detailProduct.sourceId ?? detailProduct.raw?.id ?? detailProduct.id;
+
+    if (!typeKey || sourceId == null) {
+      setDetailData(null);
+      setDetailError(new Error("Unsupported product type or missing id"));
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadDetail = async () => {
+      setIsDetailLoading(true);
+      setDetailError(null);
+      setDetailData(null);
+      try {
+        const data = await fetchProductDetail({ type: typeKey, id: sourceId });
+        if (!isMounted) return;
+        setDetailData(data);
+      } catch (error) {
+        if (!isMounted) return;
+        console.error("Failed to load product detail:", error);
+        setDetailError(error);
+        setDetailData(null);
+      } finally {
+        if (isMounted) {
+          setIsDetailLoading(false);
+        }
+      }
+    };
+
+    loadDetail();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [detailProduct, isDetailRoute]);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      setIsProductsLoading(true);
+      setProductsError(null);
+      try {
+        const data = await fetchAllProducts();
+        setAllProducts(normalizeProducts(data));
+      } catch (error) {
+        console.error("Failed to load products:", error);
+        setProductsError(error);
+        setAllProducts([]);
+      } finally {
+        setIsProductsLoading(false);
+        setProductsLoaded(true);
+      }
+    };
+
+    loadProducts();
+  }, [i18n.language]);
+
   const [selectedTab, setSelectedTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState(INITIAL_FILTERS);
@@ -391,6 +689,7 @@ export default function Product() {
   const [aiPreferences, setAiPreferences] = useState(() => ({ ...EMPTY_PREFERENCES }));
   const [isPreferenceSheetOpen, setPreferenceSheetOpen] = useState(false);
 
+
   const matchesFilterChips = useCallback((product) => matchesProductFilters(product, filters), [filters]);
   const matchesCompareFilterChips = useCallback(
     (product) => matchesProductFilters(product, compareFilters),
@@ -402,6 +701,7 @@ export default function Product() {
       setCompareStage("select");
       setCompareSelection([]);
       setCompareBaseType(null);
+      resetComparisonData();
       return;
     }
 
@@ -418,7 +718,7 @@ export default function Product() {
       }
       return next;
     });
-  }, [isCompareRoute, savedProducts, matchesCompareFilterChips]);
+  }, [isCompareRoute, savedProducts, matchesCompareFilterChips, resetComparisonData]);
 
   useEffect(() => {
     if (!floatingNotice) return;
@@ -428,7 +728,7 @@ export default function Product() {
 
   const filteredProducts = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    return PRODUCT_CATALOG.filter((product) => {
+    return allProducts.filter((product) => {
       const matchSearch =
         term.length === 0 ||
         product.name.toLowerCase().includes(term) ||
@@ -436,14 +736,23 @@ export default function Product() {
 
       return matchSearch && matchesFilterChips(product);
     });
-  }, [searchTerm, matchesFilterChips]);
+  }, [allProducts, searchTerm, matchesFilterChips]);
 
   const compareFilteredSavedProducts = useMemo(
     () => savedProducts.filter((product) => matchesCompareFilterChips(product)),
     [savedProducts, matchesCompareFilterChips]
   );
 
-  const aiRecommendations = useMemo(() => RECOMMENDED_MOCK, []);
+  const aiRecommendations = useMemo(() => {
+    return allProducts.slice(0, 3).map((product) => ({
+      id: product.id,
+      productId: product.id,
+      bankName: product.bankName,
+      name: product.name,
+      description: product.highlight || product.keyFeatures || "Learn more about this product.",
+      action: "Learn More",
+    }));
+  }, [allProducts]);
 
   const hasActiveFilters = useMemo(
     () => Object.values(filters).some((value) => value !== null),
@@ -497,6 +806,7 @@ export default function Product() {
     if (savedProducts.length === 0) {
     }
     setCompareStage("select");
+    resetComparisonData();
     navigate("/product/compare");
   };
 
@@ -504,6 +814,7 @@ export default function Product() {
     setCompareStage("select");
     setCompareSelection([]);
     setCompareBaseType(null);
+    resetComparisonData();
     navigate("/product");
   };
 
@@ -538,6 +849,7 @@ export default function Product() {
 
       if (compareStage === "result") {
         setCompareStage("select");
+        resetComparisonData();
       }
 
       const next = [...prev, product];
@@ -548,16 +860,51 @@ export default function Product() {
     });
   };
 
-  const handleCompareProceed = () => {
+  const handleCompareProceed = async () => {
     if (compareSelection.length !== 2) {
       setFloatingNotice("Select two products to compare.");
       return;
     }
+    const baseType = compareSelection[0]?.type;
+    const isSameType = compareSelection.every((item) => item.type === baseType);
+    if (!isSameType) {
+      setFloatingNotice("Please select products of the same type.");
+      return;
+    }
+
+    const apiType = API_PRODUCT_TYPE_MAP[baseType];
+    if (!apiType) {
+      setFloatingNotice("Comparison is not available for this product type yet.");
+      return;
+    }
+
+    const productIds = compareSelection.map(
+      (item) => item.sourceId ?? item.raw?.id ?? item.id
+    );
+
     setCompareStage("result");
+    setComparisonProducts([]);
+    setComparisonHighlights(null);
+    setComparisonError(null);
+    setIsComparisonLoading(true);
+
+    try {
+      const response = await fetchProductComparison({ type: apiType, productIds });
+      const { products, highlights } = normalizeComparisonResponse(baseType, response);
+      setComparisonProducts(products);
+      setComparisonHighlights(highlights);
+    } catch (error) {
+      console.error("Failed to load comparison data:", error);
+      setComparisonError(error);
+      setFloatingNotice("Failed to load comparison data.");
+    } finally {
+      setIsComparisonLoading(false);
+    }
   };
 
   const handleCompareBackToSelect = () => {
     setCompareStage("select");
+    resetComparisonData();
   };
 
   const handleAddToList = (product) => {
@@ -597,7 +944,7 @@ export default function Product() {
   const handleSelectRecommendation = (item) => {
     if (!item) return;
     const targetId = item.productId || item.id;
-    const target = PRODUCT_CATALOG.find((product) => product.id === targetId);
+    const target = allProducts.find((product) => product.id === targetId);
     if (target) {
       navigate(`/product/${target.id}`);
     } else {
@@ -633,10 +980,17 @@ export default function Product() {
             onBackToSelect={handleCompareBackToSelect}
             onClose={handleCompareClose}
             onVisitWebsite={handleVisitWebsite}
+            comparisonProducts={comparisonProducts}
+            comparisonHighlights={comparisonHighlights}
+            isComparisonLoading={isComparisonLoading}
+            comparisonError={comparisonError}
           />
         ) : isDetailRoute ? (
           <ProductDetailSheet
             product={detailProduct}
+            detailData={detailData}
+            isDetailLoading={isDetailLoading}
+            detailError={detailError}
             onVisitWebsite={handleVisitWebsite}
             onAddToList={handleAddToList}
           />
@@ -693,6 +1047,13 @@ export default function Product() {
             )}
 
             {selectedTab === "all" ? (
+              isProductsLoading ? (
+                <S.EmptyState>Loading products...</S.EmptyState>
+              ) : productsError ? (
+                <S.EmptyState>
+                  Failed to load products. Please try again later.
+                </S.EmptyState>
+              ) : (
               <AllProductsSection
                 filterConfig={FILTER_CONFIG}
                 filterOrder={FILTER_SEQUENCE}
@@ -706,6 +1067,7 @@ export default function Product() {
                 onProductClick={handleNavigateToDetail}
                 onCompareToggle={handleCompareToggle}
               />
+              )
             ) : (
               <RecommendationsSection
                 isLoggedIn={isLoggedIn}
