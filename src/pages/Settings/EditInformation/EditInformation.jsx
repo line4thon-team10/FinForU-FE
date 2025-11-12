@@ -57,10 +57,15 @@ export default function EditInformation() {
           }
         }
 
-        setFormData({ ...userData, visaExpir: formattedVisaExpir });
+        setFormData({
+          ...userData,
+          visaExpir: formattedVisaExpir,
+          desiredProducts: userData.desiredProductType,
+        });
         setIsNotifyOn(userData.notify ?? true);
-      } catch {
+      } catch (error) {
         alert("Failed to get user information.");
+        console.error(error);
       } finally {
         setIsLoading(false);
       }
@@ -235,6 +240,9 @@ export default function EditInformation() {
         } else {
           delete newData.visaExpir; // 혹시라도 null/undefined라면 삭제 (PATCH의 경우)
         }
+
+        newData.desiredProductType = newData.desiredProducts;
+        delete newData.desiredProducts; // 기존 필드는 삭제하여 서버 혼동 방지
 
         // 실제 API 호출: PATCH 또는 PUT
         await api.patch("/api/members/me", newData);

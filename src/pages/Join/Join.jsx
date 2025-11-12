@@ -133,10 +133,10 @@ export default function Join() {
       name: formData.name,
       nationality: formData.nationality,
       language: LANG_MAP[i18n.language] || "ENGLISH", // 언어 선택 없이 접근한 경우 기본값 영어
-      visaType: formData.visaType || null,
+      visaType: formData.visaType,
       visaExpir: finalvisaExpir,
       notify: formData.notify,
-      desiredProducts: formData.desiredProducts,
+      desiredProductType: "CARD", // 회원가입 API 수정되면 formData.desiredProducts 로 변경
     };
 
     setIsLoading(true);
