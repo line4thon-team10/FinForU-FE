@@ -11,6 +11,7 @@ import shinhanLogo from "./icon/shinhan.png";
 import hanaLogo from "./icon/hana.png";
 import kookminLogo from "./icon/kookmin.png";
 import wooriLogo from "./icon/woori.png";
+import LoadingSpinner from "../../components/loading-spinner/LoadingSpinner";
 // 매핑 파일
 const bankLogos = {
   shinhan: shinhanLogo,
@@ -162,6 +163,7 @@ export default function Rates() {
 
   return (
     <S.Container>
+      {loading && <LoadingSpinner />}
       <S.TopBox>
         <S.Toast>{toastMessage || t("rates.recommendMsg")}</S.Toast>
         <S.Title>{t("rates.currencyExchangeRate")}</S.Title>
