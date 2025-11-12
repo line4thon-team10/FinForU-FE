@@ -135,7 +135,6 @@ export default function Join() {
       language: LANG_MAP[i18n.language] || "ENGLISH", // 언어 선택 없이 접근한 경우 기본값 영어
       visaType: formData.visaType || null,
       visaExpir: finalvisaExpir,
-      desiredProducts: formData.desiredProducts,
       notify: formData.notify,
       desiredProducts: formData.desiredProducts,
     };
