@@ -34,7 +34,7 @@
     "join": "Join",
     "email": "Email",
     "password": "Password",
-    "4DigitNumber": "4-digit number",
+    "8DigitNumber": "8-digit number",
     "passwordAgain": "Please enter your password again",
     "name": "Name",
     "nationality": "Nationality",
