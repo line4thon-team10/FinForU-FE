@@ -12,6 +12,7 @@ import EditInformation from "./pages/Settings/EditInformation/EditInformation";
 import DeleteAccount from "./pages/Settings/DeleteAccount/DeleteAccount";
 import Rates from "./pages/Rates/Rates";
 import Map from "./pages/map/Map";
+import Product from "./pages/product/Product";
 
 function App() {
   const { i18n } = useTranslation();
@@ -38,7 +39,9 @@ function App() {
         <Route element={<HeaderNavLayout />}>
           <Route path="/guide" element={<Guide />} />
           <Route path="/rates" element={<Rates />} />
-          <Route path="/map" element={<Map/>} />
+          <Route path="/map" element={<Map />} />
+          <Route path="/product" element={<Product />} />
+          <Route path="/product/:productId" element={<Product />} />
         </Route>
       </Routes>
     </RootLayout>
