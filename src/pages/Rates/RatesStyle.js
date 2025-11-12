@@ -8,6 +8,16 @@ export const Container = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1.875rem;
+  /* 스크롤 안 보이게 */
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
 `;
 
 export const TopBox = styled.div`
