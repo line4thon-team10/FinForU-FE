@@ -23,6 +23,14 @@ ChartJS.register(
 );
 
 export default function RateChart({ graphData }) {
+  const prices = graphData.map((item) => item.price);
+
+  // Y축 범위 설정 (여백 설정)
+  const dataMin = Math.min(...prices);
+  const dataMax = Math.max(...prices);
+  const dataRange = dataMax - dataMin;
+  const yAxisMin = dataMin - dataRange * 0.1;
+  const yAxisMax = dataMax + dataRange * 0.1;
   const data = {
     labels: graphData.map((item) => item.date), // X축 : 날짜
     datasets: [
@@ -83,6 +91,8 @@ export default function RateChart({ graphData }) {
         border: {
           display: false,
         },
+        min: yAxisMin,
+        max: yAxisMax,
       },
     },
   };
