@@ -32,6 +32,7 @@ export const XBtn = styled.button`
 `;
 
 export const Box = styled.div`
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -52,11 +53,13 @@ export const Text = styled.div`
 `;
 
 export const ButtonWrapper = styled.div`
+  width: 100%;
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 2rem;
   button {
-    width: 7.9375rem;
+    width: 7rem;
     color: #fff;
     display: flex;
     justify-content: center;

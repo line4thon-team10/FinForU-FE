@@ -10,6 +10,7 @@ import ToggleSwitch from "../../../components/toggle-switch/ToggleSwitch";
 import ButtonGroup from "../../../components/button-group/ButtonGroup";
 import { useNavigate } from "react-router-dom";
 import api from "../../../api/api";
+import LoadingSpinner from "../../../components/loading-spinner/LoadingSpinner";
 
 export default function EditInformation() {
   const navigate = useNavigate();
@@ -271,6 +272,7 @@ export default function EditInformation() {
 
   return (
     <S.Container>
+      {isLoading && <LoadingSpinner />}
       <J.Label>
         {t("join.email")}
         <J.Input
@@ -289,7 +291,7 @@ export default function EditInformation() {
         <div>
           <J.PWInput
             type="password"
-            placeholder={t("join.4DigitNumber")}
+            placeholder={t("join.8DigitNumber")}
             value={formData.password}
             onChange={(e) => setNewPassword(e.target.value)}
           />

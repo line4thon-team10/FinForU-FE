@@ -6,6 +6,7 @@ import GoToLogin from "../../components/go-to-login/GoToLogin";
 import WalletModal from "./WalletModal/WalletModal";
 import DeleteModal from "./DeleteModal/DeleteModal";
 import api from "../../api/api";
+import LoadingSpinner from "../../components/loading-spinner/LoadingSpinner";
 
 const initialWalletData = {
   walletId: null,
@@ -92,6 +93,7 @@ export default function Wallet() {
   // return <GoToLogin />;
   return (
     <S.Container>
+      {isDataLoading && <LoadingSpinner />}
       {modalState.isOpen &&
         modalState.type &&
         modalState.modalType &&
