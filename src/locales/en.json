@@ -13,6 +13,7 @@
   "delete": "Delete",
   "others": "Others",
   "add": "Add",
+  "edit": "Edit",
   "banks": {
     "hana": "Hana Bank",
     "kookmin": "Kookmin Bank",
@@ -183,7 +184,7 @@
     "addAnother": "Add Another Account",
     "productType": "Product Type",
     "check": "Check",
-    "debit": "Debit",
+    "credit": "Credit",
     "productName": "Product Name",
     "enterName": "Enter product name",
     "upcomingPaymentDate": "Upcoming Payment Date",

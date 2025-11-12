@@ -13,6 +13,7 @@
   "delete": "Xóa",
   "others": "Khác",
   "add": "Thêm",
+  "edit": "Chỉnh sửa",
   "banks": {
     "hana": "Ngân hàng Hana",
     "kookmin": "Ngân hàng Kookmin",
@@ -183,7 +184,7 @@
     "addAnother": "Thêm Tài khoản Khác",
     "productType": "Loại sản phẩm",
     "check": "Thẻ ghi nợ",
-    "debit": "Thẻ ghi nợ",
+    "credit": "Thẻ tín dụng",
     "productName": "Tên sản phẩm",
     "enterName": "Nhập tên sản phẩm",
     "upcomingPaymentDate": "Ngày Thanh toán Sắp tới",
