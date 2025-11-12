@@ -2,22 +2,62 @@ import { useTranslation } from "react-i18next";
 import Navigation from "../../components/Navigation/Navigation";
 import { useHeaderStore } from "../../stores/headerStore";
 import { useEffect, useState, useRef } from "react";
+import api from "../../api/api";
 import * as S from "./GuideStyle";
+
+const fetchGuideMain = async () => {
+  const response = await api.get("/api/guide");
+  return response.data?.data ?? null;
+};
+
+const queryGuide = async (message) => {
+  const response = await api.get("/api/guide/query", {
+    params: { message },
+  });
+  return response.data?.data ?? "";
+};
+
+const normalizeFAQs = (items) => {
+  if (!Array.isArray(items)) return [];
+
+  const result = [];
+  const seen = new Set();
+
+  items.forEach((item) => {
+    let questionText = null;
+
+    if (typeof item === "string") {
+      questionText = item;
+    } else if (item && typeof item === "object") {
+      if (typeof item.question === "string") {
+        questionText = item.question;
+      } else {
+        questionText = Object.values(item).find((value) => typeof value === "string");
+      }
+    }
+
+    if (typeof questionText === "string") {
+      const normalized = questionText.trim();
+      if (normalized.length > 0 && !seen.has(normalized)) {
+        seen.add(normalized);
+        result.push(normalized);
+      }
+    }
+  });
+
+  return result;
+};
 
 export default function Guide() {
   const { t, i18n } = useTranslation();
   const [inputValue, setInputValue] = useState("");
+  const [helloMessage, setHelloMessage] = useState("");
+  const [faqQuestions, setFaqQuestions] = useState([]);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMainLoading, setIsMainLoading] = useState(false);
   const chatAreaRef = useRef(null);
   const messageEndRef = useRef(null);
-
-  // 디자인 확인용 임시 데이터, api 연결 후 삭제
-  const faqQuestions = [
-    { question: "How to open a bank account?" },
-    { question: "How to open a bank account?" },
-    { question: "How to open a bank account?" },
-  ];
 
   // 헤더 설정
   const setHeaderConfig = useHeaderStore((state) => state.setHeaderConfig);
@@ -28,6 +68,30 @@ export default function Guide() {
       showSettingBtn: true, // 환경설정 버튼 여부
     });
   }, [setHeaderConfig, i18n.language]);
+
+  useEffect(() => {
+    const loadGuideMain = async () => {
+      setIsMainLoading(true);
+      try {
+        const data = await fetchGuideMain();
+        if (data) {
+          setHelloMessage(data.helloMessage ?? "");
+          setFaqQuestions(normalizeFAQs(data.questions));
+        } else {
+          setHelloMessage("");
+          setFaqQuestions([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch guide main data:", error);
+        setHelloMessage("");
+        setFaqQuestions([]);
+      } finally {
+        setIsMainLoading(false);
+      }
+    };
+
+    loadGuideMain();
+  }, [i18n.language]);
 
   // 대화 내용 길어질 때 스크롤을 맨 아래로
   useEffect(() => {
@@ -40,15 +104,24 @@ export default function Guide() {
   }, [messages, isLoading]);
 
   // AI 응답 생성
-  const generateAIResponse = (question) => {
+  const generateAIResponse = async (question) => {
     setIsLoading(true);
 
-    // 디자인 확인용 임시 응답
-    setTimeout(() => {
-      const response = "This is a sample AI response.";
+    try {
+      const response = await queryGuide(question);
       setMessages((prev) => [...prev, { type: "ai", text: response }]);
+    } catch (error) {
+      console.error("Failed to fetch guide query response:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "ai",
+          text: "Sorry, I couldn't process that request. Please try again later.",
+        },
+      ]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   // FAQ 버튼 클릭 핸들러
@@ -59,7 +132,7 @@ export default function Guide() {
   // 메시지 전송 핸들러
   const handleSendMessage = (text = null, fromFAQ = false) => {
     // 로딩 중이면 새 질문 불가
-    if (isLoading) return;
+    if (isLoading || isMainLoading) return;
 
     const messageText = text || inputValue.trim();
 
@@ -81,7 +154,7 @@ export default function Guide() {
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (!isLoading) {
+      if (!isLoading && !isMainLoading) {
         handleSendMessage();
       }
     }
@@ -91,7 +164,9 @@ export default function Guide() {
     <>
       <S.Container>
         <S.ChatArea ref={chatAreaRef}>
-          <S.WelcomeMessage>{t("guide.greeting")}</S.WelcomeMessage>
+          <S.WelcomeMessage>
+            {isMainLoading ? t("guide.loading") : helloMessage || t("guide.greeting")}
+          </S.WelcomeMessage>
 
           {messages.length > 0 && (
             <S.MessageList>
@@ -113,15 +188,16 @@ export default function Guide() {
         </S.ChatArea>
 
         <S.FAQSection>
-          {faqQuestions.map((faq, index) => (
-            <S.FAQButton
-              key={index}
-              onClick={() => handleFAQClick(faq.question)}
-              disabled={isLoading}
-            >
-              {faq.question}
-            </S.FAQButton>
-          ))}
+          {faqQuestions.length > 0 &&
+            faqQuestions.map((question, index) => (
+              <S.FAQButton
+                key={`faq-${index}-${question}`}
+                onClick={() => handleFAQClick(question)}
+                disabled={isLoading || isMainLoading}
+              >
+                {question}
+              </S.FAQButton>
+            ))}
         </S.FAQSection>
 
         <S.InputSection>
@@ -131,11 +207,11 @@ export default function Guide() {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            disabled={isLoading}
+            disabled={isLoading || isMainLoading}
           />
           <S.SendButton
             onClick={() => handleSendMessage()}
-            disabled={!inputValue.trim() || isLoading}
+            disabled={!inputValue.trim() || isLoading || isMainLoading}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
