@@ -26,156 +26,6 @@ const initialRateData = {
   data: [],
 };
 
-// API 확인용 더미 데이터
-const DUMMY_API_RESPONSE = {
-  isSuccess: true,
-  timeStamp: "2025-11-06 15:01:49",
-  code: "SUCCESS_200",
-  httpStatus: 200,
-  message: "호출에 성공했습니다.",
-  data: [
-    {
-      ExchangeRateData: {
-        currencyType: "USD",
-        todayRate: 1437.7,
-        rateCompareYesterday: 0.0,
-        priceGraphData: [
-          {
-            date: "2024-11-06",
-            price: 1377.8,
-          },
-          {
-            date: "2024-11-07",
-            price: 1391.5,
-          },
-          {
-            date: "2024-11-08",
-            price: 1399.1,
-          },
-          // ...
-          {
-            date: "2025-11-05",
-            price: 1437.7,
-          },
-        ],
-        eachBankFee: [
-          {
-            bank: "shinhan",
-            fee: 0.175,
-          },
-          {
-            bank: "hana",
-            fee: 0.175,
-          },
-          {
-            bank: "kookmin",
-            fee: 0.175,
-          },
-          {
-            bank: "woori",
-            fee: 0.175,
-          },
-        ],
-      },
-      toastMessage: "It's a good time to exchange your KRW today!",
-    },
-    {
-      ExchangeRateData: {
-        currencyType: "CNY",
-        todayRate: 201.9,
-        rateCompareYesterday: 0.0,
-        priceGraphData: [
-          {
-            date: "2024-11-06",
-            price: 193.95,
-          },
-          {
-            date: "2024-11-07",
-            price: 194.35,
-          },
-          {
-            date: "2024-11-08",
-            price: 194.32,
-          },
-
-          // ...
-
-          {
-            date: "2025-11-05",
-            price: 201.9,
-          },
-        ],
-        eachBankFee: [
-          {
-            bank: "shinhan",
-            fee: 2.0,
-          },
-          {
-            bank: "hana",
-            fee: 3.5,
-          },
-          {
-            bank: "kookmin",
-            fee: 3.0,
-          },
-          {
-            bank: "woori",
-            fee: 3.25,
-          },
-        ],
-      },
-      toastMessage: "It's a good time to exchange currency today!",
-    },
-    {
-      ExchangeRateData: {
-        currencyType: "VND",
-        todayRate: 5.46,
-        rateCompareYesterday: 0.0,
-        priceGraphData: [
-          {
-            date: "2024-11-06",
-            price: 5.44,
-          },
-          {
-            date: "2024-11-07",
-            price: 5.48,
-          },
-          {
-            date: "2024-11-08",
-            price: 5.52,
-          },
-
-          // ...
-
-          {
-            date: "2025-11-05",
-            price: 5.46,
-          },
-        ],
-        eachBankFee: [
-          {
-            bank: "shinhan",
-            fee: 6.6,
-          },
-          {
-            bank: "hana",
-            fee: 11.8,
-          },
-          {
-            bank: "kookmin",
-            fee: 9.6,
-          },
-          {
-            bank: "woori",
-            fee: null,
-          },
-        ],
-      },
-      toastMessage: "Not a good day to exchange money today!",
-    },
-  ],
-};
-
 export default function Rates() {
   const [exchangeRateData, setExchangeRateData] = useState(initialRateData);
   const [loading, setLoading] = useState(true);
@@ -183,7 +33,7 @@ export default function Rates() {
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
   // 현재 선택된 기간 (기본값 1_WEEK)
   const [selectedPeriod, setSelectedPeriod] = useState("1_WEEK");
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   // 헤더 설정
   const setHeaderConfig = useHeaderStore((state) => state.setHeaderConfig);
   useEffect(() => {
@@ -192,16 +42,14 @@ export default function Rates() {
       showBackBtn: false, // 뒤로가기 버튼 여부
       showSettingBtn: true, // 환경설정 버튼 여부
     });
-  }, [setHeaderConfig, i18next.language]);
+  }, [setHeaderConfig, i18n.language]);
 
   // GET 요청으로 데이터 fetch
   const fetchExchangeRates = useCallback(async () => {
     setLoading(true);
     try {
-      // const res = await api.get("/api/exrate");
-      // setExchangeRateData(res.data);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setExchangeRateData(DUMMY_API_RESPONSE);
+      const res = await api.get("/api/exrate");
+      setExchangeRateData(res.data);
     } catch (error) {
       console.error("환율 데이터 로드 실패", error);
     } finally {
@@ -235,7 +83,8 @@ export default function Rates() {
       switch (period) {
         case "1_WEEK":
           startDate = new Date(today);
-          startDate.setDate(today.getDate() - 7);
+          // 영업일만 계산 (주말만큼 더해줌)
+          startDate.setDate(today.getDate() - 9);
           break;
         case "3_MONTHS":
           startDate = new Date(today);

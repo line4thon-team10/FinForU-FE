@@ -121,6 +121,11 @@ export default function Join() {
       return;
     }
 
+    const visaExpirDateString = formData.visaExpir;
+    // YYYY-MM-DD로 변환
+    const isoDate = visaExpirDateString.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$1-$2");
+    const finalvisaExpir = `${isoDate}T00:00:00.000Z`;
+
     // 최종 데이터 형식 맞추기 및 제출
     const signupData = {
       email: formData.email,
@@ -128,14 +133,10 @@ export default function Join() {
       name: formData.name,
       nationality: formData.nationality,
       language: LANG_MAP[i18n.language] || "ENGLISH", // 언어 선택 없이 접근한 경우 기본값 영어
-      visaType: formData.visaType || null,
-      visaExpir: formData.visaExpir
-        ? new Date(
-            formData.visaExpir.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$1-$2")
-          ).toISOString()
-        : null, // ISO 형식으로 변환
+      visaType: formData.visaType,
+      visaExpir: finalvisaExpir,
       notify: formData.notify,
-      desiredProducts: formData.desiredProducts,
+      desiredProductType: "CARD", // 회원가입 API 수정되면 formData.desiredProducts 로 변경
     };
 
     setIsLoading(true);
@@ -163,6 +164,7 @@ export default function Join() {
         } else {
           // 이외의 경우
           alert(`A ${error.response.status} error occurred during registration.`);
+          console.log(error.response.message, error.response.text, error.response.data);
           return;
         }
       } else if (error.request) {

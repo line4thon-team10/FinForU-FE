@@ -11,6 +11,7 @@ import Settings from "./pages/Settings/Settings";
 import EditInformation from "./pages/Settings/EditInformation/EditInformation";
 import DeleteAccount from "./pages/Settings/DeleteAccount/DeleteAccount";
 import Rates from "./pages/Rates/Rates";
+import Wallet from "./pages/Wallet/Wallet";
 import Map from "./pages/map/Map";
 import Product from "./pages/product/Product";
 
@@ -39,6 +40,7 @@ function App() {
         <Route element={<HeaderNavLayout />}>
           <Route path="/guide" element={<Guide />} />
           <Route path="/rates" element={<Rates />} />
+          <Route path="/wallet" element={<Wallet />} />
           <Route path="/map" element={<Map />} />
           <Route path="/product" element={<Product />} />
           <Route path="/product/:productId" element={<Product />} />
