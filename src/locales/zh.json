@@ -33,7 +33,7 @@
     "join": "注册",
     "email": "电子邮件",
     "password": "密码",
-    "4DigitNumber": "4位数字",
+    "8DigitNumber": "8位数字",
     "passwordAgain": "请再次输入您的密码",
     "name": "姓名",
     "nationality": "国籍",

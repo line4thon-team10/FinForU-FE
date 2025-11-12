@@ -41,7 +41,23 @@ export default function EditInformation() {
         const response = await api.get("/api/members/me");
         const userData = response.data;
 
-        setFormData(userData);
+        let formattedVisaExpir = userData.visaExpir;
+        if (userData.visaExpir) {
+          // 백엔드 Timestamp 문자열을 Date 객체로 파싱
+          const date = new Date(userData.visaExpir);
+
+          // 날짜가 유효한지 확인
+          if (!isNaN(date.getTime())) {
+            // 월, 일, 년을 추출하여 MM/DD/YYYY 형식으로 포맷팅
+            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+            const day = String(date.getUTCDate()).padStart(2, "0");
+            const year = date.getUTCFullYear();
+
+            formattedVisaExpir = `${month}/${day}/${year}`;
+          }
+        }
+
+        setFormData({ ...userData, visaExpir: formattedVisaExpir });
         setIsNotifyOn(userData.notify ?? true);
       } catch {
         alert("Failed to get user information.");
@@ -209,13 +225,32 @@ export default function EditInformation() {
           newData.password = newPassword;
         }
 
+        const visaExpirDateString = newData.visaExpir;
+
+        if (visaExpirDateString) {
+          // MM/DD/YYYY -> YYYY-MM-DD로 변환
+          const isoDate = visaExpirDateString.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$1-$2");
+          // UTC 자정 Timestamp 형식으로 변환하여 백엔드 전송 데이터에 덮어쓰기
+          newData.visaExpir = `${isoDate}T00:00:00.000Z`;
+        } else {
+          delete newData.visaExpir; // 혹시라도 null/undefined라면 삭제 (PATCH의 경우)
+        }
+
         // 실제 API 호출: PATCH 또는 PUT
         await api.patch("/api/members/me", newData);
 
         alert("Your changed information has been saved successfully.");
         navigate(-1);
       } catch (error) {
-        alert("Failed to change the information.");
+        setIsLoading(false);
+        if (error.response) {
+          if (error.response.status === 401) {
+            alert("This email is already in use.");
+            return;
+          } else {
+            alert("Failed to change the information.");
+          }
+        }
       } finally {
         setIsLoading(false);
         setIsSubmitted(false);

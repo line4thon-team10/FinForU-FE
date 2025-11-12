@@ -34,7 +34,8 @@ export default function Step1({ formData, updateFormData, isSubmitted }) {
     //   isValid = false;
     // }
 
-    if (formData.password.trim().length < 4) {
+    if (formData.password.trim().length < 8 || formData.password.trim().length > 64) {
+      // 백엔드에서 비밀번호를 8~64자로 받음
       errors.password = "Please enter a valid password.";
       isValid = false;
     } else if (formData.password !== passwordAgain) {
@@ -104,7 +105,7 @@ export default function Step1({ formData, updateFormData, isSubmitted }) {
         <div>
           <S.PWInput
             type="password"
-            placeholder={t("join.4DigitNumber")}
+            placeholder={t("join.8DigitNumber")}
             value={formData.password}
             onChange={(e) => updateFormData({ password: e.target.value })}
           />

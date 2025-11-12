@@ -33,7 +33,7 @@
     "join": "Đăng ký",
     "email": "Email",
     "password": "Mật khẩu",
-    "4DigitNumber": "Mã số 4 chữ số",
+    "8DigitNumber": "Mã số 8 chữ số",
     "passwordAgain": "Vui lòng nhập lại mật khẩu",
     "name": "Tên",
     "nationality": "Quốc tịch",
