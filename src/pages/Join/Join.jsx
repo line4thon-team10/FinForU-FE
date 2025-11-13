@@ -136,7 +136,7 @@ export default function Join() {
       visaType: formData.visaType,
       visaExpir: finalvisaExpir,
       notify: formData.notify,
-      desiredProductType: "CARD", // 회원가입 API 수정되면 formData.desiredProducts 로 변경
+      desiredProductType: formData.desiredProducts,
     };
 
     setIsLoading(true);
