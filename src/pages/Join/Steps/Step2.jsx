@@ -13,15 +13,15 @@ export default function Step2({ formData, updateFormData, isSubmitted }) {
   const visaTypeName = { value: "visaType", label: t("join.visaType") };
   // API 수정 요청 필요 -> value 명확히 받아야 환경설정에서도 GET 요청으로 값 가져오기 가능
   const visaTypeArray = [
-    { value: "ACCOUNT_OPEN", main: t("join.academic"), sub: "(D2, D4)" },
+    { value: "ACADEMIC", main: t("join.academic"), sub: "(D2, D4)" },
     {
-      value: "ACCOUNT_OPEN",
+      value: "EMPLOYMENT",
       main: t("join.employment"),
       sub: "(E1, E2, E3, E4, E5, E6, E7, E9, H2)",
     },
-    { value: "CARD_AVAILABLE", main: t("join.residenceFamily"), sub: "(F2, F4, F5, F6)" },
-    { value: "ACCOUNT_OPEN", main: t("join.investmentBusiness"), sub: "(D7, D8, D9)" },
-    { value: "ACCOUNT_OPEN", label: t("others") },
+    { value: "RESIDENCE_FAMILY", main: t("join.residenceFamily"), sub: "(F2, F4, F5, F6)" },
+    { value: "INVESTMENT_BUSINESS", main: t("join.investmentBusiness"), sub: "(D7, D8, D9)" },
+    { value: "OTHERS", label: t("others") },
   ];
 
   // 선호 상품 종류 값

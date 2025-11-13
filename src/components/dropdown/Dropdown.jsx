@@ -13,8 +13,9 @@ import { useTranslation } from "react-i18next";
  * * 두 줄 항목은 { value: string, main: string, sub: string } 형태로 넘깁니다.
  * @param {function(string, string): void} props.onSelect - 항목 선택 시 호출될 콜백 함수 (name.value, item.value)
  * @param {string} props.selectedValue - 부모 컴포넌트에서 전달된 현재 선택된 값
+ * @param {boolean} props.isWallet - 월렛 페이지의 모달에서 쓰이는지 아닌지 (height 조절) - 기본값 false이므로 월렛 페이지 모달이 아니면 따로 설정할 필요 없음
  */
-export default function Dropdown({ name, itemArray, onSelect, selectedValue }) {
+export default function Dropdown({ name, itemArray, onSelect, selectedValue, isWallet = false }) {
   const { t, i18n } = useTranslation();
 
   // 자동 스크롤 구현
@@ -93,6 +94,7 @@ export default function Dropdown({ name, itemArray, onSelect, selectedValue }) {
       ref={containerRef}
       onClick={() => setIsVisible(!isVisible)}
       $selected={selectedValue && selectedValue !== ""}
+      $isWallet={isWallet}
     >
       <S.Content>
         <div>{selectedLabel}</div>
