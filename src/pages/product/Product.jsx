@@ -17,6 +17,8 @@ import shinhanLogo from "../Rates/icon/shinhan.png";
 import hanaLogo from "../Rates/icon/hana.png";
 import kookminLogo from "../Rates/icon/kookmin.png";
 import wooriLogo from "../Rates/icon/woori.png";
+import { Helmet } from "react-helmet-async";
+import { helmetTitle } from "../../constants/title";
 
 // 은행 이름을 로고로 매핑하는 함수
 export const getBankLogo = (bankName) => {
@@ -647,7 +649,7 @@ export default function Product() {
   useEffect(() => {
     if (isCompareRoute) {
       setHeaderConfig({
-        title: "Compare",
+        title: t("product.compare"),
         showBackBtn: true,
         showSettingBtn: false,
       });
@@ -1025,8 +1027,18 @@ export default function Product() {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  // title 설정
+  const productPageTitle = isCompareRoute
+    ? `Compare${helmetTitle}`
+    : isDetailRoute
+      ? `${detailProduct.name}${helmetTitle}`
+      : `Product${helmetTitle}`;
+
   return (
     <>
+      <Helmet>
+        <title>{productPageTitle}</title>
+      </Helmet>
       <S.Container>
         {isCompareRoute ? (
           <ComparePage
