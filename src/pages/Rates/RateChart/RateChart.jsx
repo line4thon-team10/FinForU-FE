@@ -10,6 +10,7 @@ import {
   Legend,
   Filler,
 } from "chart.js";
+import { useEffect, useRef } from "react";
 
 ChartJS.register(
   CategoryScale,
@@ -22,8 +23,22 @@ ChartJS.register(
   Filler
 );
 
-export default function RateChart({ graphData }) {
+export default function RateChart({ graphData, onLoadComplete }) {
+  const chartRef = useRef();
+  useEffect(() => {
+    if (graphData.length > 0 && chartRef.current && onLoadComplete) {
+      setTimeout(() => {
+        onLoadComplete();
+      }, 0);
+    }
+  }, [graphData, onLoadComplete]); // graphData나 콜백이 변경될 때마다 재실행
+
   const prices = graphData.map((item) => item.price);
+
+  // 데이터가 없으면 차트 렌더링하지 않음 (오류 방지 및 깔끔한 처리)
+  if (prices.length === 0) {
+    return null;
+  }
 
   // Y축 범위 설정 (여백 설정)
   const dataMin = Math.min(...prices);
@@ -99,7 +114,7 @@ export default function RateChart({ graphData }) {
 
   return (
     <div>
-      <Line data={data} options={options} />
+      <Line ref={chartRef} data={data} options={options} />
     </div>
   );
 }
