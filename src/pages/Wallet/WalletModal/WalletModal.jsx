@@ -161,6 +161,27 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
     return Object.keys(newErrors).length === 0;
   }, [formData, type]);
 
+  // MMYYYY -> YYYY-MM-01 변환 (LocalDate로 변환)
+  const transformDateToApi = useCallback((mmYYYY) => {
+    if (!mmYYYY || mmYYYY.length !== 6) return "";
+
+    const month = mmYYYY.substring(0, 2);
+    const year = mmYYYY.substring(2, 6);
+    return `${year}-${month}-01`;
+  }, []);
+
+  // YYYY-MM-01 -> MMYYYY 변환 (LocalDate에서 변환)
+  const transformDateFromApi = useCallback((yyyyMMDD) => {
+    if (yyyyMMDD || yyyyMMDD.length < 7) return ""; // 최소 7자
+
+    const parts = yyyyMMDD.split("-");
+    if (parts.length < 2) return "";
+
+    const year = parts[0];
+    const month = parts[1].padStart(2, "0"); // MM 포맷 보장
+    return `${month}${year}`; // MMYYYY
+  }, []);
+
   // API 요청 로직
   const getApiInfo = (type, modalType, id) => {
     let url = "";
@@ -192,8 +213,8 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
               bank: loadedData.bank || "",
               productType: loadedData.productType || "",
               productName: loadedData.productName || "",
-              startDate: loadedData.startDate || "",
-              endDate: loadedData.endDate || "",
+              startDate: transformDateFromApi(loadedData.startDate),
+              endDate: transformDateFromApi(loadedData.endDate),
               monthlyPay: loadedData.monthlyPay || "",
               paymentDate: loadedData.paymentDate || "",
             });
@@ -209,7 +230,7 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
       }
     };
     fetchInitData();
-  }, [modalType.value, id, type.value, getApiInfo, onClose]);
+  }, [modalType.value, id, type.value, getApiInfo, onClose, transformDateFromApi]);
 
   // Add Another Account 버튼 & Confirm 버튼 공통 추가 로직
   const handleSave = useCallback(
@@ -224,8 +245,15 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
       setIsSubmitting(true);
       const { url, method } = getApiInfo(type.value, "add", null);
 
+      // 서버에 LocalDate 형태로 보냄
+      const dataToSend = { ...formData };
+      if (type.value === "savings") {
+        dataToSend.startDate = transformDateToApi(formData.startDate);
+        dataToSend.endDate = transformDateToApi(formData.endDate);
+      }
+
       try {
-        const res = await api[method](url, formData);
+        const res = await api[method](url, dataToSend);
 
         if (res.status === 200 || response.status === 201) {
           if (isAddAnother) {
@@ -245,7 +273,17 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
         setIsSubmitting(false);
       }
     },
-    [formData, type, isSubmitting, isLoading, validateForm, onClose, getApiInfo, initialFormData]
+    [
+      formData,
+      type,
+      isSubmitting,
+      isLoading,
+      validateForm,
+      onClose,
+      getApiInfo,
+      initialFormData,
+      transformDateToApi,
+    ]
   );
 
   // Confirm 버튼 로직 (추가 + 수정 둘 다)
@@ -265,8 +303,15 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
       setIsSubmitting(true);
       const { url, method } = getApiInfo(type.value, "edit", id);
 
+      // 서버에 LocalDate 형태로 보냄
+      const dataToSend = { ...formData };
+      if (type.value === "savings") {
+        dataToSend.startDate = transformDateToApi(formData.startDate);
+        dataToSend.endDate = transformDateToApi(formData.endDate);
+      }
+
       try {
-        const res = await api[method](url, formData);
+        const res = await api[method](url, dataToSend);
 
         if (res.status === 200) {
           onClose(); // 모달 닫기
@@ -280,7 +325,18 @@ export default function WalletModal({ type, modalType, id = null, onClose }) {
         setIsSubmitting(false);
       }
     }
-  }, [modalType, validateForm, type, id, onClose, formData, getApiInfo, isSubmitting, isLoading]);
+  }, [
+    modalType,
+    validateForm,
+    type,
+    id,
+    onClose,
+    formData,
+    getApiInfo,
+    isSubmitting,
+    isLoading,
+    transformDateToApi,
+  ]);
 
   // 모달 밖 클릭 시 닫기
   const handleOverlayClick = useCallback(
