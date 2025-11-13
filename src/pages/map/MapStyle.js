@@ -80,6 +80,7 @@ export const FilterButton = styled.button`
   align-items: center;
   gap: 0.375rem;
   transition: all 0.2s;
+  outline: none; // 횡스크롤 시 테두리 검은 선 안 생기도록
 
   &:hover {
     background-color: ${({ $isActive }) => ($isActive ? "#009CEA" : "#f5f5f5")};
@@ -89,12 +90,12 @@ export const FilterButton = styled.button`
     width: 16px;
     height: 16px;
     fill: currentColor;
-    
+
     path {
       fill: currentColor;
     }
   }
-  
+
   img {
     width: 16px;
     height: 16px;
@@ -110,7 +111,10 @@ export const InfoCard = styled.div`
   flex-shrink: 0;
   pointer-events: auto;
   cursor: ${({ $isInteractive }) => ($isInteractive ? "pointer" : "default")};
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 
   ${({ $isInteractive }) =>
     $isInteractive &&
@@ -151,7 +155,7 @@ export const CardLogo = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   img {
     width: 100%;
     height: 100%;
@@ -191,13 +195,13 @@ export const CardInfoWithIcon = styled.div`
   line-height: 1.5;
   padding-bottom: ${({ $hasDivider }) => ($hasDivider ? "0.75rem" : "0")};
   border-bottom: ${({ $hasDivider }) => ($hasDivider ? "1px solid #f0f0f0" : "none")};
-  
+
   svg {
     width: 16px;
     height: 16px;
     flex-shrink: 0;
   }
-  
+
   span {
     word-break: break-all;
   }
@@ -211,7 +215,7 @@ export const CardHoursText = styled.div`
 `;
 
 export const CardOpenStatus = styled.span`
-  color: #009CEA;
+  color: #009cea;
   font-weight: 600;
 `;
 
@@ -237,7 +241,7 @@ export const CardLink = styled.a`
 
   &:hover {
     text-decoration: underline;
-    color: #009CEA;
+    color: #009cea;
   }
 `;
 
@@ -249,12 +253,14 @@ export const DetailSheet = styled.div`
   padding: 0;
   z-index: 3;
   pointer-events: ${({ $isOpen }) => ($isOpen ? "auto" : "none")};
-  transform: translateY(${({ $isOpen, $position }) => {
-    if (!$isOpen) return "110%";
-    // $position: 0 = 닫힘, 1 = 열림
-    // 110%에서 시작해서 0%까지 이동
-    return `${110 - ($position * 110)}%`;
-  }});
+  transform: translateY(
+    ${({ $isOpen, $position }) => {
+      if (!$isOpen) return "110%";
+      // $position: 0 = 닫힘, 1 = 열림
+      // 110%에서 시작해서 0%까지 이동
+      return `${110 - $position * 110}%`;
+    }}
+  );
   transition: ${({ $isDragging }) => ($isDragging ? "none" : "transform 0.3s ease")};
   width: 100%;
   max-width: 100%;
@@ -271,7 +277,7 @@ export const DetailHeader = styled.div`
   user-select: none;
   width: 100%;
   padding-top: 0.75rem;
-  
+
   &:active {
     cursor: grabbing;
   }
@@ -286,7 +292,7 @@ export const DetailHandle = styled.div`
   cursor: grab;
   touch-action: none;
   flex-shrink: 0;
-  
+
   &:active {
     cursor: grabbing;
   }
@@ -325,14 +331,14 @@ export const DetailAvatar = styled.div`
   overflow: hidden;
   flex-shrink: 0;
   position: relative;
-  
+
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
   }
-  
+
   span {
     width: 100%;
     height: 100%;
@@ -376,7 +382,7 @@ export const DetailRow = styled.div`
   color: #000;
   line-height: 1.5;
   padding: 0.35rem 0;
-  
+
   &:last-child {
     border-bottom: none;
   }
@@ -390,7 +396,7 @@ export const DetailHoursText = styled.div`
 `;
 
 export const DetailOpenStatus = styled.span`
-  color: #009CEA;
+  color: #009cea;
   font-weight: 600;
 `;
 
@@ -400,13 +406,13 @@ export const DetailIcon = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #4B4B4B;
+  color: #4b4b4b;
   flex-shrink: 0;
 
   svg {
     width: 18px;
     height: 18px;
-    
+
     path {
       fill: currentColor;
     }
@@ -423,4 +429,3 @@ export const DetailLink = styled.a`
     text-decoration: underline;
   }
 `;
-

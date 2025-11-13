@@ -262,6 +262,7 @@ export const FilterChip = styled.button`
   width: fit-content;
   max-width: 100%;
   white-space: nowrap;
+  outline: none; // 횡스크롤 시 테두리 검은 선 안 생기도록
 
   &:active {
     transform: scale(0.98);
@@ -1063,7 +1064,7 @@ export const CompareCellValue = styled.div`
 
 export const CompareCellList = styled.ul`
   margin: 0;
-  padding-left: 1rem;
+  /* padding-left: 1rem; */
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -1071,12 +1072,13 @@ export const CompareCellList = styled.ul`
   color: #000;
 
   li {
-    list-style: disc;
+    /* list-style: disc; */
+    list-style: none;
   }
 `;
 
 export const CompareWebsiteButton = styled.button`
-  display:flex;
+  display: flex;
   align-items: center;
   text-align: center;
   justify-content: center;
