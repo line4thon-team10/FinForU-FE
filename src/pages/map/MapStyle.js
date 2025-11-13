@@ -88,12 +88,22 @@ export const FilterButton = styled.button`
   svg {
     width: 16px;
     height: 16px;
+    fill: currentColor;
+    
+    path {
+      fill: currentColor;
+    }
+  }
+  
+  img {
+    width: 16px;
+    height: 16px;
   }
 `;
 
 export const InfoCard = styled.div`
   background-color: #fff;
-  border: 1px solid ${({ $isActive }) => ($isActive ? "#009cea" : "var(--color-secondary-gray)")};
+  border: 1px solid var(--color-secondary-gray);
   border-radius: 0.625rem;
   padding: 1rem;
   min-width: 280px;
@@ -128,11 +138,38 @@ export const CardSection = styled.div`
   pointer-events: auto;
 `;
 
+export const CardContent = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+`;
+
+export const CardLogo = styled.div`
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+`;
+
+export const CardTextContent = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
 export const CardTitle = styled.div`
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.125rem;
+  font-weight: 500;
   color: #000;
   margin-bottom: 0.5rem;
+  line-height: 1.4;
 `;
 
 export const CardInfo = styled.div`
@@ -140,11 +177,47 @@ export const CardInfo = styled.div`
   color: #666;
   margin-bottom: 0.375rem;
   line-height: 1.5;
+  padding-bottom: ${({ $hasDivider }) => ($hasDivider ? "0.75rem" : "0")};
+  border-bottom: ${({ $hasDivider }) => ($hasDivider ? "1px solid #f0f0f0" : "none")};
+`;
+
+export const CardInfoWithIcon = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 0.375rem;
+  line-height: 1.5;
+  padding-bottom: ${({ $hasDivider }) => ($hasDivider ? "0.75rem" : "0")};
+  border-bottom: ${({ $hasDivider }) => ($hasDivider ? "1px solid #f0f0f0" : "none")};
+  
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  
+  span {
+    word-break: break-all;
+  }
+`;
+
+export const CardHoursText = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+`;
+
+export const CardOpenStatus = styled.span`
+  color: #009CEA;
+  font-weight: 600;
 `;
 
 export const CardRow = styled.div`
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
   overflow-x: auto;
   margin: 0 -1.25rem;
   padding: 0 1.25rem;
@@ -158,17 +231,13 @@ export const CardRow = styled.div`
 `;
 
 export const CardLink = styled.a`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin-top: 0.5rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #009CEA;
+  color: #666;
   text-decoration: none;
+  word-break: break-all;
 
   &:hover {
     text-decoration: underline;
+    color: #009CEA;
   }
 `;
 
@@ -177,37 +246,75 @@ export const DetailSheet = styled.div`
   left: 0;
   right: 0;
   bottom: calc(${NAV_HEIGHT} + ${SAFE_BOTTOM} + 1.5rem);
-  padding: 0 1.25rem;
+  padding: 0;
   z-index: 3;
   pointer-events: ${({ $isOpen }) => ($isOpen ? "auto" : "none")};
-  transform: translateY(${({ $isOpen }) => ($isOpen ? "0%" : "110%")});
-  transition: transform 0.3s ease;
+  transform: translateY(${({ $isOpen, $position }) => {
+    if (!$isOpen) return "110%";
+    // $position: 0 = 닫힘, 1 = 열림
+    // 110%에서 시작해서 0%까지 이동
+    return `${110 - ($position * 110)}%`;
+  }});
+  transition: ${({ $isDragging }) => ($isDragging ? "none" : "transform 0.3s ease")};
+  width: 100%;
+  max-width: 100%;
+`;
+
+export const DetailHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.5rem 1.5rem 0 0;
+  background-color: #ffffff;
+  position: relative;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  width: 100%;
+  padding-top: 0.75rem;
+  
+  &:active {
+    cursor: grabbing;
+  }
 `;
 
 export const DetailHandle = styled.div`
   width: 52px;
   height: 6px;
-  margin: 0 auto 0.85rem;
+  margin: 0 auto 0.75rem;
   border-radius: 3px;
   background-color: rgba(0, 0, 0, 0.1);
+  cursor: grab;
+  touch-action: none;
+  flex-shrink: 0;
+  
+  &:active {
+    cursor: grabbing;
+  }
 `;
 
-export const DetailHeader = styled.div`
+export const DetailHeaderContent = styled.div`
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem 1.5rem 1rem;
-  border-radius: 1.5rem 1.5rem 0 0;
-  background-color: #ffffff;
-  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.08);
-  position: relative;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0 1.5rem 1rem;
+  width: 100%;
+`;
+
+export const DetailBankLogo = styled.img`
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  object-fit: contain;
+  margin-bottom: 0.25rem;
+  align-self: center;
 `;
 
 export const DetailAvatar = styled.div`
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #009cea, #31c0ff);
+  background: #009cea;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -215,44 +322,50 @@ export const DetailAvatar = styled.div`
   font-size: 1.125rem;
   font-weight: 700;
   text-transform: uppercase;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  
+  span {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #009cea;
+  }
 `;
 
 export const DetailTitle = styled.h2`
   font-size: 1.125rem;
-  font-weight: 700;
-  color: #111;
+  font-weight: 500;
+  color: #000;
   margin: 0;
-`;
-
-export const DetailSubtitle = styled.p`
-  margin: 0.25rem 0 0;
-  font-size: 0.8125rem;
-  color: #6b6b6b;
-`;
-
-export const DetailCloseButton = styled.button`
-  position: absolute;
-  top: 1.1rem;
-  right: 1.25rem;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  background-color: rgba(0, 0, 0, 0.05);
-  color: #222;
-  font-size: 1.5rem;
-  line-height: 1;
-  cursor: pointer;
+  text-align: left;
+  width: 100%;
 `;
 
 export const DetailBody = styled.div`
   background-color: #ffffff;
-  border-radius: 0 0 1.5rem 1.5rem;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-  padding: 0.75rem 1.5rem 1.5rem;
+  border-radius: 0;
+  padding: 0 1.5rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
+  gap: 0;
+  max-height: calc(100vh - ${HEADER_HEIGHT} - ${NAV_HEIGHT} - ${SAFE_TOP} - ${SAFE_BOTTOM} - 8rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
 `;
 
 export const DetailRow = styled.div`
@@ -260,8 +373,25 @@ export const DetailRow = styled.div`
   align-items: flex-start;
   gap: 0.75rem;
   font-size: 0.9375rem;
-  color: #333;
+  color: #000;
   line-height: 1.5;
+  padding: 0.35rem 0;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+export const DetailHoursText = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+`;
+
+export const DetailOpenStatus = styled.span`
+  color: #009CEA;
+  font-weight: 600;
 `;
 
 export const DetailIcon = styled.span`
@@ -270,18 +400,23 @@ export const DetailIcon = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #009cea;
+  color: #4B4B4B;
+  flex-shrink: 0;
 
   svg {
     width: 18px;
     height: 18px;
+    
+    path {
+      fill: currentColor;
+    }
     display: block;
   }
 `;
 
 export const DetailLink = styled.a`
-  color: #0077ff;
-  font-weight: 600;
+  color: #000;
+  font-weight: 400;
   text-decoration: none;
 
   &:hover {
