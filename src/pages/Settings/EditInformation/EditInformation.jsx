@@ -291,7 +291,7 @@ export default function EditInformation() {
         <div>
           <J.PWInput
             type="password"
-            placeholder={t("join.8DigitNumber")}
+            placeholder={t("join.8Characters")}
             value={formData.password}
             onChange={(e) => setNewPassword(e.target.value)}
           />

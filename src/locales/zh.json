@@ -34,7 +34,7 @@
     "join": "注册",
     "email": "电子邮件",
     "password": "密码",
-    "8DigitNumber": "8位数字",
+    "8Characters": "至少8个字符",
     "passwordAgain": "请再次输入您的密码",
     "name": "姓名",
     "nationality": "国籍",

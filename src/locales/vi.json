@@ -34,7 +34,7 @@
     "join": "Đăng ký",
     "email": "Email",
     "password": "Mật khẩu",
-    "8DigitNumber": "Mã số 8 chữ số",
+    "8Characters": "Ít nhất 8 ký tự",
     "passwordAgain": "Vui lòng nhập lại mật khẩu",
     "name": "Tên",
     "nationality": "Quốc tịch",
