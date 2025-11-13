@@ -42,7 +42,7 @@ export default function EditInformation() {
         const response = await api.get("/api/members/me");
         const userData = response.data;
 
-        let formattedVisaExpir = userData.visaExpir;
+        let formattedVisaExpir = userData.visa_Expir;
         if (userData.visaExpir) {
           // 백엔드 Timestamp 문자열을 Date 객체로 파싱
           const date = new Date(userData.visaExpir);
@@ -61,7 +61,7 @@ export default function EditInformation() {
         setFormData({
           ...userData,
           visaExpir: formattedVisaExpir,
-          desiredProducts: userData.desiredProductType,
+          desiredProducts: userData.desiredProductTypes,
         });
         setIsNotifyOn(userData.notify ?? true);
       } catch (error) {
@@ -237,12 +237,12 @@ export default function EditInformation() {
           // MM/DD/YYYY -> YYYY-MM-DD로 변환
           const isoDate = visaExpirDateString.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$1-$2");
           // UTC 자정 Timestamp 형식으로 변환하여 백엔드 전송 데이터에 덮어쓰기
-          newData.visaExpir = `${isoDate}T00:00:00.000Z`;
+          newData.visa_expir = `${isoDate}T00:00:00.000Z`;
         } else {
           delete newData.visaExpir; // 혹시라도 null/undefined라면 삭제 (PATCH의 경우)
         }
 
-        newData.desiredProductType = newData.desiredProducts;
+        newData.desiredProductTypes = newData.desiredProducts;
         delete newData.desiredProducts; // 기존 필드는 삭제하여 서버 혼동 방지
 
         // 실제 API 호출: PATCH 또는 PUT
