@@ -1052,27 +1052,31 @@ export default function Map() {
                     <S.CardContent>
                       <S.CardTextContent>
                     <S.CardTitle>{place.place_name}</S.CardTitle>
-                        <S.CardInfo 
-                          $hasDivider={
-                            (place.category_group_code === "AT4" || 
-                             (place.place_name || "").toLowerCase().includes("atm")) ||
-                            place.phone ||
-                            bankWebsite
-                          }
-                        >
-                          {place.road_address_name || place.address_name}
-                        </S.CardInfo>
-                        {(place.category_group_code === "AT4" || 
-                          (place.place_name || "").toLowerCase().includes("atm")) && (
-                          <S.CardInfoWithIcon 
-                            $hasDivider={place.phone || bankWebsite}
-                          >
-                            <TimeIcon />
-                            <S.CardHoursText>
-                              <S.CardOpenStatus>Open</S.CardOpenStatus>
-                            </S.CardHoursText>
-                          </S.CardInfoWithIcon>
-                        )}
+                        {(() => {
+                          const hasHours = place.category_group_code === "AT4" || 
+                            (place.place_name || "").toLowerCase().includes("atm");
+                          return (
+                            <>
+                              <S.CardInfo 
+                                $hasDivider={
+                                  !hasHours && (place.phone || bankWebsite)
+                                }
+                              >
+                                {place.road_address_name || place.address_name}
+                              </S.CardInfo>
+                              {hasHours && (
+                                <S.CardInfoWithIcon 
+                                  $hasDivider={place.phone || bankWebsite}
+                                >
+                                  <TimeIcon />
+                                  <S.CardHoursText>
+                                    <S.CardOpenStatus>Open</S.CardOpenStatus>
+                                  </S.CardHoursText>
+                                </S.CardInfoWithIcon>
+                              )}
+                            </>
+                          );
+                        })()}
                         {place.phone && (
                           <S.CardInfoWithIcon>
                             <CallIcon />
