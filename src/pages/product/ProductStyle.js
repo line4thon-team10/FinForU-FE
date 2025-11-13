@@ -380,7 +380,6 @@ export const CardBadge = styled.div`
   width: 52px;
   height: 52px;
   border-radius: 12px;
-  background: #d5ecfb;
   color: #009cea;
   font-weight: 700;
   display: flex;

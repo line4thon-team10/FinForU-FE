@@ -1,5 +1,6 @@
 import CompareIcon from "../icons/CompareIcon.svg";
 import FilterBar from "./FilterBar";
+import { getBankLogo } from "../Product";
 import * as S from "../ProductStyle";
 
 export default function AllProductsSection({
@@ -34,7 +35,16 @@ export default function AllProductsSection({
         <S.ProductList>
           {products.map((product) => (
             <S.ProductCard key={product.id} onClick={() => onProductClick(product)}>
-              <S.CardBadge>{product.bankLogo ? <img src={product.bankLogo} alt={`${product.bankName} logo`} /> : product.bankName[0]}</S.CardBadge>
+              <S.CardBadge>
+                {(() => {
+                  const bankLogo = product.bankLogo || getBankLogo(product.bankName);
+                  return bankLogo ? (
+                    <img src={bankLogo} alt={`${product.bankName} logo`} />
+                  ) : (
+                    product.bankName[0]
+                  );
+                })()}
+              </S.CardBadge>
               <S.CardMeta>
                 <S.CardBank>{product.bankName}</S.CardBank>
                 <S.CardTitle>{product.name}</S.CardTitle>

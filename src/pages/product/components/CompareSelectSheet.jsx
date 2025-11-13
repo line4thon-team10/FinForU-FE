@@ -1,3 +1,4 @@
+import { getBankLogo } from "../Product";
 import * as S from "../ProductStyle";
 
 export default function CompareSelectSheet({
@@ -42,11 +43,14 @@ export default function CompareSelectSheet({
                   </svg>
                 </S.CompareSelectorCheck>
                 <S.CardBadge>
-                  {product.bankLogo ? (
-                    <img src={product.bankLogo} alt={`${product.bankName} logo`} />
-                  ) : (
-                    product.bankName[0]
-                  )}
+                  {(() => {
+                    const bankLogo = product.bankLogo || getBankLogo(product.bankName);
+                    return bankLogo ? (
+                      <img src={bankLogo} alt={`${product.bankName} logo`} />
+                    ) : (
+                      product.bankName[0]
+                    );
+                  })()}
                 </S.CardBadge>
                 <S.CardMeta>
                   <S.CardBank>{product.bankName}</S.CardBank>

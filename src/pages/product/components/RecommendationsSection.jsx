@@ -1,5 +1,6 @@
 import NoticeIcon from "../icons/NoticeIcon.svg";
 import EditIcon from "../icons/EditIcon.svg";
+import { getBankLogo } from "../Product";
 import * as S from "../ProductStyle";
 
 export default function RecommendationsSection({
@@ -60,7 +61,16 @@ export default function RecommendationsSection({
         {recommendations.map((item) => (
           <S.RecommendationCard key={item.id}>
             <S.RecommendationHeader>
-              <S.CardBadge>{item.bankLogo ? <img src={item.bankLogo} alt={`${item.bankName} logo`} /> : item.bankName[0]}</S.CardBadge>
+              <S.CardBadge>
+                {(() => {
+                  const bankLogo = item.bankLogo || getBankLogo(item.bankName);
+                  return bankLogo ? (
+                    <img src={bankLogo} alt={`${item.bankName} logo`} />
+                  ) : (
+                    item.bankName[0]
+                  );
+                })()}
+              </S.CardBadge>
               <S.RecommendationMeta>
                 <S.RecommendationTitle>{item.name}</S.RecommendationTitle>
                 <S.RecommendationDescription>{item.description}</S.RecommendationDescription>

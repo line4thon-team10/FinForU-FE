@@ -1,6 +1,7 @@
 import FilterBar from "./FilterBar";
 import CompareIcon from "../icons/CompareIcon.svg";
 import LinkIcon from "../icons/LinkIcon.svg";
+import { getBankLogo } from "../Product";
 import * as S from "../ProductStyle";
 
 const getComparableNumericValue = (value, strategy) => {
@@ -265,11 +266,14 @@ function renderSelection({
                   </svg>
                 </S.CompareSelectorCheck>
                 <S.CardBadge>
-                  {product.bankLogo ? (
-                    <img src={product.bankLogo} alt={`${product.bankName} logo`} />
-                  ) : (
-                    product.bankName[0]
-                  )}
+                  {(() => {
+                    const bankLogo = product.bankLogo || getBankLogo(product.bankName);
+                    return bankLogo ? (
+                      <img src={bankLogo} alt={`${product.bankName} logo`} />
+                    ) : (
+                      product.bankName[0]
+                    );
+                  })()}
                 </S.CardBadge>
                 <S.CardMeta>
                   <S.CardBank>{product.bankName}</S.CardBank>

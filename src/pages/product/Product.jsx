@@ -12,6 +12,34 @@ import ComparePage from "./components/ComparePage";
 import ProductDetailSheet from "./components/ProductDetailSheet";
 import * as S from "./ProductStyle";
 
+// 은행 로고 이미지 import (Rates에서 사용하는 것과 동일)
+import shinhanLogo from "../Rates/icon/shinhan.png";
+import hanaLogo from "../Rates/icon/hana.png";
+import kookminLogo from "../Rates/icon/kookmin.png";
+import wooriLogo from "../Rates/icon/woori.png";
+
+// 은행 이름을 로고로 매핑하는 함수
+export const getBankLogo = (bankName) => {
+  if (!bankName) return null;
+  
+  const bankNameLower = bankName.toLowerCase();
+  
+  if (bankNameLower.includes("shinhan") || bankNameLower === "shinhan bank") {
+    return shinhanLogo;
+  }
+  if (bankNameLower.includes("hana") || bankNameLower === "hana bank") {
+    return hanaLogo;
+  }
+  if (bankNameLower.includes("kookmin") || bankNameLower.includes("kb") || bankNameLower === "kb bank") {
+    return kookminLogo;
+  }
+  if (bankNameLower.includes("woori") || bankNameLower === "woori bank") {
+    return wooriLogo;
+  }
+  
+  return null;
+};
+
 const fetchAllProducts = async (params = {}) => {
   const response = await api.get("/api/products", { params });
   return response.data?.data ?? {};
