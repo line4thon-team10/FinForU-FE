@@ -30,6 +30,7 @@ const initialRateData = {
 export default function Rates() {
   const [exchangeRateData, setExchangeRateData] = useState(initialRateData);
   const [loading, setLoading] = useState(true);
+  const [chartReady, setChartReady] = useState(false);
   // 현재 선택된 통화 (기본값 USD)
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
   // 현재 선택된 기간 (기본값 1_WEEK)
@@ -70,7 +71,23 @@ export default function Rates() {
       (item) => item.ExchangeRateData.currencyType === selectedCurrency
     );
 
-    return dataItem || null;
+    if (!dataItem) return null;
+
+    const graphData = dataItem.ExchangeRateData.priceGraphData;
+    // 전날 대비 상승률 계산
+    if (graphData && graphData.length >= 2) {
+      const latestRate = graphData[graphData.length - 1].price; // 오늘
+      const previousRate = graphData[graphData.length - 2].price; // 전날
+
+      // (오늘 - 전날) / 전날 * 100
+      const calculatedRateCompareYesterday = ((latestRate - previousRate) / previousRate) * 100;
+
+      // todayRate를 최신 데이터로 업데이트
+      dataItem.ExchangeRateData.todayRate = latestRate;
+      dataItem.ExchangeRateData.rateCompareYesterday = calculatedRateCompareYesterday;
+    }
+
+    return dataItem;
   }, [exchangeRateData.data, selectedCurrency]);
 
   // 선택된 기간 -> 그래프 데이터 필터링
@@ -161,9 +178,17 @@ export default function Rates() {
     toastMessage,
   } = dataToUse;
 
+  // 차트 로딩 완료 처리
+  const handleChartLoad = useCallback(() => {
+    setChartReady(true);
+  }, []);
+
+  // 로딩 스피너 관련 상태
+  const isDataReady = loading || !chartReady || finalGraphData.length === 0;
+
   return (
     <S.Container>
-      {loading && <LoadingSpinner />}
+      {isDataReady && <LoadingSpinner />}
       <S.TopBox>
         <S.Toast>{toastMessage || t("rates.recommendMsg")}</S.Toast>
         <S.Title>{t("rates.currencyExchangeRate")}</S.Title>
@@ -215,7 +240,7 @@ export default function Rates() {
             1 YEAR
           </S.OneYearBtn>
         </S.PeriodBtnWrapper>
-        <RateChart graphData={finalGraphData} />
+        <RateChart graphData={finalGraphData} onLoadComplete={handleChartLoad} />
       </S.GraphWrapper>
       <S.FeeBox>
         <S.Title>{t("rates.feeComparison")}</S.Title>
