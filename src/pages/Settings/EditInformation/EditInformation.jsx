@@ -11,7 +11,6 @@ import ButtonGroup from "../../../components/button-group/ButtonGroup";
 import { useNavigate } from "react-router-dom";
 import api from "../../../api/api";
 import LoadingSpinner from "../../../components/loading-spinner/LoadingSpinner";
-import { Helmet } from "react-helmet-async";
 import { helmetTitle } from "../../../constants/title";
 import { requestForToken } from "../../../firebase";
 
@@ -326,9 +325,7 @@ export default function EditInformation() {
 
   return (
     <>
-      <Helmet>
-        <title>Edit Information{helmetTitle}</title>
-      </Helmet>
+      <title>Edit Information{helmetTitle}</title>
       <S.Container>
         {isLoading && <LoadingSpinner />}
         <J.Label>
