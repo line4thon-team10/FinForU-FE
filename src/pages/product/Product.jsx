@@ -647,7 +647,18 @@ export default function Product() {
     }
 
     const typeKey = API_PRODUCT_TYPE_MAP[detailProduct.type];
-    const sourceId = detailProduct.sourceId ?? detailProduct.raw?.id ?? detailProduct.id;
+    // sourceId 추출: sourceId > raw.id > id에서 숫자 추출
+    let sourceId = detailProduct.sourceId ?? detailProduct.raw?.id;
+    
+    // sourceId가 없으면 id에서 숫자 부분 추출 (예: "card-123" -> "123")
+    if (!sourceId && detailProduct.id) {
+      const match = detailProduct.id.match(/\d+$/);
+      if (match) {
+        sourceId = match[0];
+      } else {
+        sourceId = detailProduct.id;
+      }
+    }
 
     if (!typeKey || sourceId == null) {
       setDetailData(null);
@@ -667,7 +678,6 @@ export default function Product() {
         setDetailData(data);
       } catch (error) {
         if (!isMounted) return;
-        console.error("Failed to load product detail:", error);
         setDetailError(error);
         setDetailData(null);
       } finally {
@@ -692,7 +702,6 @@ export default function Product() {
         const data = await fetchAllProducts();
         setAllProducts(normalizeProducts(data));
       } catch (error) {
-        console.error("Failed to load products:", error);
         setProductsError(error);
         setAllProducts([]);
       } finally {
@@ -922,7 +931,6 @@ export default function Product() {
       setComparisonProducts(products);
       setComparisonHighlights(highlights);
     } catch (error) {
-      console.error("Failed to load comparison data:", error);
       setComparisonError(error);
       setFloatingNotice("Failed to load comparison data.");
     } finally {

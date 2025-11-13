@@ -84,13 +84,24 @@ const formatBoolean = (value) => {
 };
 
 const buildDepositSavingBlocks = (detail, product, type) => {
-  if (!detail) return [];
+  if (!detail) {
+    return [];
+  }
 
   const blocks = [];
+  
+  // API 필드명 매핑: baseRate/maxRate -> minInterestRate/maxInterestRate
+  // minDepositAmount -> minDeposit
+  const minRate = detail.minInterestRate ?? detail.baseRate;
+  const maxRate = detail.maxInterestRate ?? detail.maxRate;
+  const minDeposit = detail.minDeposit ?? detail.minDepositAmount;
+  const maxDeposit = detail.maxDeposit;
+  const maxMonthly = detail.maxMonthly;
+  
   const baseRows = [
     { label: "Bank", value: detail.bank || product.bankName },
-    { label: "Minimum Rate", value: formatRate(detail.minInterestRate) },
-    { label: "Maximum Rate", value: formatRate(detail.maxInterestRate) },
+    { label: "Base Rate", value: formatRate(minRate) },
+    { label: "Maximum Rate", value: formatRate(maxRate) },
     { label: "Term", value: formatTerm(detail.termMonths) },
     { label: "Flexible", value: formatBoolean(detail.isFlexible) },
   ].filter((row) => row.value !== "-");
@@ -100,9 +111,9 @@ const buildDepositSavingBlocks = (detail, product, type) => {
   }
 
   const amountRows = [
-    { label: "Minimum Deposit", value: formatCurrency(detail.minDeposit) },
-    { label: "Maximum Deposit", value: formatCurrency(detail.maxDeposit) },
-    { label: "Monthly Limit", value: formatCurrency(detail.maxMonthly) },
+    { label: "Minimum Deposit", value: formatCurrency(minDeposit) },
+    { label: "Maximum Deposit", value: formatCurrency(maxDeposit) },
+    { label: "Monthly Limit", value: formatCurrency(maxMonthly) },
   ].filter((row) => row.value !== "-");
 
   if (amountRows.length) {
@@ -129,9 +140,34 @@ export default function ProductDetailSheet({
 }) {
   if (!product) return null;
 
-  const cardDetail = detailData?.cardDetail;
-  const depositDetail = detailData?.depositDetail;
-  const savingDetail = detailData?.savingDetail;
+  // API 응답이 배열로 오는 경우 처리: {cardDetail: [{}], depositDetail: [], savingDetail: []}
+  let cardDetail = null;
+  let depositDetail = null;
+  let savingDetail = null;
+
+  if (detailData) {
+    // cardDetail 처리
+    if (Array.isArray(detailData.cardDetail) && detailData.cardDetail.length > 0) {
+      cardDetail = detailData.cardDetail[0];
+    } else if (detailData.cardDetail && typeof detailData.cardDetail === 'object' && !Array.isArray(detailData.cardDetail)) {
+      cardDetail = detailData.cardDetail;
+    }
+
+    // depositDetail 처리
+    if (Array.isArray(detailData.depositDetail) && detailData.depositDetail.length > 0) {
+      depositDetail = detailData.depositDetail[0];
+    } else if (detailData.depositDetail && typeof detailData.depositDetail === 'object' && !Array.isArray(detailData.depositDetail)) {
+      depositDetail = detailData.depositDetail;
+    }
+
+    // savingDetail 처리
+    if (Array.isArray(detailData.savingDetail) && detailData.savingDetail.length > 0) {
+      savingDetail = detailData.savingDetail[0];
+    } else if (detailData.savingDetail && typeof detailData.savingDetail === 'object' && !Array.isArray(detailData.savingDetail)) {
+      savingDetail = detailData.savingDetail;
+    }
+  }
+
   const resolvedDetail = cardDetail || depositDetail || savingDetail || null;
 
   const heroTitle = resolvedDetail?.name || product.name;
