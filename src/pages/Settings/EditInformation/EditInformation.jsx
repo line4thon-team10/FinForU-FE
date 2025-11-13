@@ -325,7 +325,7 @@ export default function EditInformation() {
 
   return (
     <>
-      <title>Edit Information{helmetTitle}</title>
+      <title>{`Edit Information${helmetTitle}`}</title>
       <S.Container>
         {isLoading && <LoadingSpinner />}
         <J.Label>

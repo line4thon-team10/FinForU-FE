@@ -197,7 +197,7 @@ export default function Join() {
 
   return (
     <>
-      <title>Join{helmetTitle}</title>
+      <title>{`Join${helmetTitle}`}</title>
       <S.Container>
         <S.IndicatorWrapper>
           <S.Indicator>
