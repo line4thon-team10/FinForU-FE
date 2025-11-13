@@ -61,7 +61,7 @@ export default function EditInformation() {
         setFormData({
           ...userData,
           visaExpir: formattedVisaExpir,
-          desiredProducts: userData.desiredProductType,
+          desiredProducts: userData.desiredProductTypes,
         });
         setIsNotifyOn(userData.notify ?? true);
       } catch (error) {
@@ -242,7 +242,7 @@ export default function EditInformation() {
           delete newData.visaExpir; // 혹시라도 null/undefined라면 삭제 (PATCH의 경우)
         }
 
-        newData.desiredProductType = newData.desiredProducts;
+        newData.desiredProductTypes = newData.desiredProducts;
         delete newData.desiredProducts; // 기존 필드는 삭제하여 서버 혼동 방지
 
         // 실제 API 호출: PATCH 또는 PUT

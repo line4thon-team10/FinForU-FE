@@ -136,7 +136,7 @@ export default function Join() {
       visaType: formData.visaType,
       visaExpir: finalvisaExpir,
       notify: formData.notify,
-      desiredProductType: formData.desiredProducts,
+      desiredProductTypes: formData.desiredProducts,
     };
 
     setIsLoading(true);
