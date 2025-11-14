@@ -18,6 +18,7 @@ import hanaLogo from "../Rates/icon/hana.png";
 import kookminLogo from "../Rates/icon/kookmin.png";
 import wooriLogo from "../Rates/icon/woori.png";
 import { helmetTitle } from "../../constants/title";
+import { useAuthStore } from "../../stores/authStore";
 
 export const getBankLogo = (bankName) => {
   if (!bankName) return null;
