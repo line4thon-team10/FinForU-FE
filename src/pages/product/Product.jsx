@@ -1074,8 +1074,6 @@ export default function Product() {
     try {
       const loggedIn = await checkLoginStatus();
 
-      setIsLoggedIn(loggedIn);
-
       try {
         const guestToken = loggedIn ? null : getOrCreateGuestToken();
         const response = await getPreferences(guestToken);
