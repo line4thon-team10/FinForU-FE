@@ -15,17 +15,37 @@ import GlobeIcon from "./icons/GlobeIcon.svg?react";
 import LocationIcon from "./icons/LocationIcon.svg?react";
 import TimeIcon from "./icons/TimeIcon.svg?react";
 import PinIcon from "./icons/PinIcon.svg";
+import api from "../../api/api";
+
+// 외국인 특화 점포 API
+const getSpecializeBanks = async (bankName = null) => {
+  try {
+    const url = bankName ? `/api/specialize/${bankName}` : "/api/specialize";
+    const response = await api.get(url);
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      // 404 에러는 빈 배열 반환 (데이터가 없음을 의미)
+      return {
+        isSuccess: false,
+        data: [],
+        code: error.response?.data?.code || "SPECIALIZE_NOT_FOUND_404",
+        message: error.response?.data?.message || "외국인 특화 점포에 대한 정보를 찾을 수 없습니다.",
+      };
+    }
+    throw error;
+  }
+};
 
 // 카카오맵 API 키 (.env)
 const KAKAO_MAP_API_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY;
 const DEFAULT_POSITION = { lat: 37.5665, lng: 126.978, accuracy: 300 };
 const FILTER_CONFIGS = {
-  hanabank: { type: "keyword", query: "하나은행" },
-  kookminbank: { type: "keyword", query: "국민은행" },
-  shinhanbank: { type: "keyword", query: "신한은행" },
-  wooribank: { type: "keyword", query: "우리은행" },
-  // 외국인 특화 지점은 나중에 API 연동으로 처리 (임시로 키워드 검색 사용)
-  foreign: { type: "keyword", query: "외국인특화지점 은행" },
+  hanabank: { type: "keyword", query: "하나은행", apiName: "하나은행" },
+  kookminbank: { type: "keyword", query: "국민은행", apiName: "KB국민은행" },
+  shinhanbank: { type: "keyword", query: "신한은행", apiName: "신한은행" },
+  wooribank: { type: "keyword", query: "우리은행", apiName: "우리은행" },
+  foreign: { type: "api", query: "외국인특화지점" },
   general: { type: "keyword", query: "은행" },
   atm: { type: "keyword", query: "ATM" },
 };
@@ -159,8 +179,172 @@ export default function Map() {
     return R * c; // 미터 단위
   }, []);
 
+  // 외국인 특화 점포 API 응답을 카카오맵 형식으로 변환
+  const convertSpecializeToPlace = useCallback((specializeData, position) => {
+    return specializeData.map((item) => {
+      const placeLat = Number(item.latitude);
+      const placeLng = Number(item.longitude);
+      
+      // 거리 계산
+      let distance = null;
+      if (!Number.isNaN(placeLat) && !Number.isNaN(placeLng) && position) {
+        distance = calculateDistance(
+          position.lat,
+          position.lng,
+          placeLat,
+          placeLng
+        ).toString();
+      }
+      
+      // bankName과 branchName을 자연스럽게 연결
+      let placeName = "";
+      if (item.bankName && item.branchName) {
+        placeName = `${item.bankName} ${item.branchName}`;
+      } else if (item.branchName) {
+        placeName = item.branchName;
+      } else if (item.bankName) {
+        placeName = item.bankName;
+      }
+      
+      return {
+        id: item.id,
+        place_name: placeName,
+        road_address_name: item.roadAddress,
+        address_name: item.roadAddress,
+        phone: item.phoneNum,
+        x: placeLng,
+        y: placeLat,
+        category_group_code: "BK9",
+        isSpecialize: true, // 외국인 특화 점포 플래그
+        bankName: item.bankName,
+        branchName: item.branchName,
+        zipCode: item.zipCode,
+        weekClose: item.weekClose,
+        weekendClose: item.weekendClose || item.sundayClose,
+        distance: distance,
+      };
+    });
+  }, [calculateDistance]);
+
+  // 외국인 특화 점포 데이터 처리 및 마커 표시
+  const handleSpecializeBanks = useCallback(
+    async (bankFilter, position) => {
+      setIsSearching(true);
+      setSearchError(null);
+      clearPlaceMarkers();
+      setSelectedPlace(null);
+      setIsDetailOpen(false);
+
+      try {
+        // 은행 필터가 있으면 해당 은행만 조회, 없으면 전체 조회
+        const bankName = bankFilter ? FILTER_CONFIGS[bankFilter]?.apiName : null;
+        const response = await getSpecializeBanks(bankName);
+        
+        setIsSearching(false);
+
+        if (!response.isSuccess || !response.data || response.data.length === 0) {
+          setPlaces([]);
+          if (response.code === "SPECIALIZE_NOT_FOUND_404") {
+            setSearchError(response.message || "외국인 특화 점포에 대한 정보를 찾을 수 없습니다.");
+          } else {
+            setSearchError("외국인 특화 점포 정보를 불러올 수 없습니다.");
+          }
+          return;
+        }
+
+        // API 응답을 카카오맵 형식으로 변환
+        const convertedPlaces = convertSpecializeToPlace(response.data, position);
+        
+        // 거리순으로 정렬
+        const sorted = convertedPlaces.sort((a, b) => {
+          const distanceA = a.distance ? Number(a.distance) : Infinity;
+          const distanceB = b.distance ? Number(b.distance) : Infinity;
+          return distanceA - distanceB;
+        });
+
+        setPlaces(sorted);
+
+        // 마커 표시 (카카오맵이 로드된 경우만)
+        if (mapInstanceRef.current && window.kakao?.maps?.LatLng) {
+          sorted.forEach((place) => {
+            const lat = Number(place.y);
+            const lng = Number(place.x);
+            if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+            if (!mapInstanceRef.current) return;
+
+            try {
+              const positionLatLng = new window.kakao.maps.LatLng(lat, lng);
+              const currentLevel = mapInstanceRef.current?.getLevel() || 3;
+              const markerSize = getMarkerSize(currentLevel);
+              const markerContent = buildPlaceMarkerContent(markerSize);
+              if (markerContent && markerContent instanceof Node && markerContent.parentNode === null) {
+                const markerOverlay = new window.kakao.maps.CustomOverlay({
+                  position: positionLatLng,
+                  content: markerContent,
+                  yAnchor: 1,
+                  xAnchor: 0.5,
+                  zIndex: 2,
+                });
+                markerOverlay.setMap(mapInstanceRef.current);
+                
+                // 클릭 이벤트 추가
+                markerContent.addEventListener("click", (e) => {
+                  e.stopPropagation();
+                  setSelectedPlace(place);
+                  setIsDetailOpen(true);
+                  setSheetPosition(0);
+                  
+                  // 카드 선택 시 해당 위치로 지도 이동
+                  if (mapInstanceRef.current && place.y && place.x && window.kakao?.maps?.LatLng) {
+                    try {
+                      const placeLat = Number(place.y);
+                      const placeLng = Number(place.x);
+                      
+                      if (!Number.isNaN(placeLat) && !Number.isNaN(placeLng)) {
+                        const moveLatLon = new window.kakao.maps.LatLng(placeLat, placeLng);
+                        mapInstanceRef.current.panTo(moveLatLon);
+                      }
+                    } catch (error) {
+                      console.error("지도 이동 오류:", error);
+                    }
+                  }
+                  
+                  setTimeout(() => {
+                    setSheetPosition(1);
+                  }, 10);
+                });
+                
+                placeMarkersRef.current.push({ 
+                  overlay: markerOverlay, 
+                  content: markerContent,
+                  place: place,
+                  position: positionLatLng
+                });
+              }
+            } catch (error) {
+              console.error("마커 생성 오류:", error, place);
+            }
+          });
+        }
+      } catch (error) {
+        console.error("외국인 특화 점포 API 오류:", error);
+        setIsSearching(false);
+        setPlaces([]);
+        setSearchError("외국인 특화 점포 정보를 불러오는 중 오류가 발생했습니다.");
+      }
+    },
+    [convertSpecializeToPlace, clearPlaceMarkers, getMarkerSize, buildPlaceMarkerContent]
+  );
+
   const performSearch = useCallback(
     (bankFilter, serviceFilter, position) => {
+      // 외국인 특화 필터가 선택된 경우 백엔드 API 호출
+      if (serviceFilter === "foreign") {
+        handleSpecializeBanks(bankFilter, position);
+        return;
+      }
+
+      // 기존 카카오맵 API 호출 로직
       if (!mapInstanceRef.current || !window.kakao?.maps?.services) {
         return;
       }
@@ -747,6 +931,13 @@ export default function Map() {
 
   // 검색 실행 (지도 초기화 후 및 필터/위치 변경 시)
   useEffect(() => {
+    // 외국인 특화 필터는 카카오맵이 없어도 API 호출 가능
+    if (selectedServiceFilter === "foreign") {
+      performSearch(selectedBankFilter, selectedServiceFilter, currentPosition);
+      return;
+    }
+    
+    // 기타 필터는 카카오맵이 필요
     if (!isScriptLoaded || !mapInstanceRef.current) return;
     performSearch(selectedBankFilter, selectedServiceFilter, currentPosition);
   }, [isScriptLoaded, selectedBankFilter, selectedServiceFilter, currentPosition, performSearch]);
@@ -927,10 +1118,10 @@ export default function Map() {
   };
 
   // 장소 이름에서 은행 이름을 추출하여 로고 이미지 경로 반환
-  const getBankLogo = useCallback((placeName) => {
-    if (!placeName) return null;
+  const getBankLogo = useCallback((bankNameOrPlaceName) => {
+    if (!bankNameOrPlaceName) return null;
     
-    const name = placeName.toLowerCase();
+    const name = bankNameOrPlaceName.toLowerCase();
     
     // 은행 이름 매칭 (우선순위: 정확한 매칭 > 부분 매칭)
     if (name.includes("하나은행") || name.includes("하나 은행") || name.includes("hana")) {
@@ -950,10 +1141,10 @@ export default function Map() {
   }, []);
 
   // 장소 이름에서 은행 이름을 추출하여 은행 공식 웹사이트 URL 반환
-  const getBankWebsite = useCallback((placeName) => {
-    if (!placeName) return null;
+  const getBankWebsite = useCallback((bankNameOrPlaceName) => {
+    if (!bankNameOrPlaceName) return null;
     
-    const name = placeName.toLowerCase();
+    const name = bankNameOrPlaceName.toLowerCase();
     
     // 은행 이름 매칭하여 공식 웹사이트 URL 반환
     if (name.includes("하나은행") || name.includes("하나 은행") || name.includes("hana")) {
@@ -1033,7 +1224,7 @@ export default function Map() {
               </S.InfoCard>
             ) : (
               places.map((place) => {
-                const bankWebsite = getBankWebsite(place.place_name);
+                const bankWebsite = getBankWebsite(place.bankName || place.place_name);
                 return (
                   <S.InfoCard
                     key={place.id}
@@ -1053,24 +1244,54 @@ export default function Map() {
                       <S.CardTextContent>
                     <S.CardTitle>{place.place_name}</S.CardTitle>
                         {(() => {
+                          const isSpecialize = place.isSpecialize;
                           const hasHours = place.category_group_code === "AT4" || 
-                            (place.place_name || "").toLowerCase().includes("atm");
+                            (place.place_name || "").toLowerCase().includes("atm") ||
+                            (isSpecialize && (place.weekClose || place.weekendClose));
+                          const hasAddress = !!(place.road_address_name || place.address_name);
+                          const hasPhoneOrWebsite = !!(place.phone || bankWebsite);
+                          // 구분선이 필요한 경우: 다음 항목이 있을 때 (전화번호나 웹사이트)
+                          const needsDivider = hasPhoneOrWebsite;
+                          
+                          // 운영시간 포맷팅 (HH:MM:SS -> HH:MM)
+                          const formatTime = (time) => {
+                            if (!time) return null;
+                            const parts = time.split(':');
+                            if (parts.length >= 2) {
+                              return `${parts[0]}:${parts[1]}`;
+                            }
+                            return time;
+                          };
+                          
                           return (
                             <>
                               <S.CardInfo 
                                 $hasDivider={
-                                  !hasHours && (place.phone || bankWebsite)
+                                  hasAddress && !hasHours && needsDivider
                                 }
                               >
                                 {place.road_address_name || place.address_name}
                               </S.CardInfo>
                               {hasHours && (
                                 <S.CardInfoWithIcon 
-                                  $hasDivider={place.phone || bankWebsite}
+                                  $hasDivider={hasHours && needsDivider}
+                                  $isTimeIcon
                                 >
                                   <TimeIcon />
                                   <S.CardHoursText>
-                                    <S.CardOpenStatus>Open</S.CardOpenStatus>
+                                    {isSpecialize && (place.weekClose || place.weekendClose) ? (
+                                      <span>
+                                        {place.weekClose && (
+                                          <span>평일 {formatTime(place.weekClose)} 종료</span>
+                                        )}
+                                        {place.weekClose && place.weekendClose && <span> / </span>}
+                                        {place.weekendClose && (
+                                          <span>주말 {formatTime(place.weekendClose)} 종료</span>
+                                        )}
+                                      </span>
+                                    ) : (
+                                      <S.CardOpenStatus>Open</S.CardOpenStatus>
+                                    )}
                                   </S.CardHoursText>
                                 </S.CardInfoWithIcon>
                               )}
@@ -1120,9 +1341,9 @@ export default function Map() {
                 onMouseDown={handleMouseDown}
               />
               <S.DetailHeaderContent>
-                {getBankLogo(selectedPlace.place_name) && (
+                {getBankLogo(selectedPlace.bankName || selectedPlace.place_name) && (
                   <S.DetailBankLogo
-                    src={getBankLogo(selectedPlace.place_name)} 
+                    src={getBankLogo(selectedPlace.bankName || selectedPlace.place_name)} 
                     alt={selectedPlace.place_name}
                     onError={(e) => {
                       e.target.style.display = 'none';
@@ -1141,17 +1362,47 @@ export default function Map() {
                 </S.DetailIcon>
                 <span>{selectedPlace.road_address_name || selectedPlace.address_name}</span>
               </S.DetailRow>
-              {(selectedPlace.category_group_code === "AT4" || 
-                (selectedPlace.place_name || "").toLowerCase().includes("atm")) && (
-                <S.DetailRow>
-                  <S.DetailIcon aria-hidden>
-                    <TimeIcon />
-                  </S.DetailIcon>
-                  <S.DetailHoursText>
-                    <S.DetailOpenStatus>Open</S.DetailOpenStatus>
-                  </S.DetailHoursText>
-                </S.DetailRow>
-              )}
+              {(() => {
+                const isSpecialize = selectedPlace.isSpecialize;
+                const hasHours = selectedPlace.category_group_code === "AT4" || 
+                  (selectedPlace.place_name || "").toLowerCase().includes("atm") ||
+                  (isSpecialize && (selectedPlace.weekClose || selectedPlace.weekendClose));
+                
+                if (!hasHours) return null;
+                
+                // 운영시간 포맷팅 (HH:MM:SS -> HH:MM)
+                const formatTime = (time) => {
+                  if (!time) return null;
+                  const parts = time.split(':');
+                  if (parts.length >= 2) {
+                    return `${parts[0]}:${parts[1]}`;
+                  }
+                  return time;
+                };
+                
+                return (
+                  <S.DetailRow>
+                    <S.DetailIcon aria-hidden>
+                      <TimeIcon />
+                    </S.DetailIcon>
+                    <S.DetailHoursText>
+                      {isSpecialize && (selectedPlace.weekClose || selectedPlace.weekendClose) ? (
+                        <span>
+                          {selectedPlace.weekClose && (
+                            <span>평일 {formatTime(selectedPlace.weekClose)} 종료</span>
+                          )}
+                          {selectedPlace.weekClose && selectedPlace.weekendClose && <span> / </span>}
+                          {selectedPlace.weekendClose && (
+                            <span>주말 {formatTime(selectedPlace.weekendClose)} 종료</span>
+                          )}
+                        </span>
+                      ) : (
+                        <S.DetailOpenStatus>Open</S.DetailOpenStatus>
+                      )}
+                    </S.DetailHoursText>
+                  </S.DetailRow>
+                );
+              })()}
               {selectedPlace.phone && (
                 <S.DetailRow>
                   <S.DetailIcon aria-hidden>
@@ -1160,12 +1411,12 @@ export default function Map() {
                   <span>{selectedPlace.phone}</span>
                 </S.DetailRow>
               )}
-              {getBankWebsite(selectedPlace.place_name) && (
+              {getBankWebsite(selectedPlace.bankName || selectedPlace.place_name) && (
                 <S.DetailRow>
                   <S.DetailIcon aria-hidden>
                     <GlobeIcon />
                   </S.DetailIcon>
-                  <S.DetailLink href={getBankWebsite(selectedPlace.place_name)} target="_blank" rel="noopener noreferrer">
+                  <S.DetailLink href={getBankWebsite(selectedPlace.bankName || selectedPlace.place_name)} target="_blank" rel="noopener noreferrer">
                     Find a branch
                   </S.DetailLink>
                 </S.DetailRow>
