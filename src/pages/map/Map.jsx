@@ -1140,12 +1140,6 @@ export default function Map() {
     return `${Math.round(num)} m`;
   };
 
-  // 장소 이름에서 은행 이름을 추출하여 로고 이미지 경로 반환
-  const getBankLogo = useCallback((placeName) => {
-    if (!placeName) return null;
-
-    const name = placeName.toLowerCase();
-
   const getBankLogo = useCallback((bankNameOrPlaceName) => {
     if (!bankNameOrPlaceName) return null;
     
@@ -1172,12 +1166,6 @@ export default function Map() {
 
     return null;
   }, []);
-
-  // 장소 이름에서 은행 이름을 추출하여 은행 공식 웹사이트 URL 반환
-  const getBankWebsite = useCallback((placeName) => {
-    if (!placeName) return null;
-
-    const name = placeName.toLowerCase();
 
   const getBankWebsite = useCallback((bankNameOrPlaceName) => {
     if (!bankNameOrPlaceName) return null;
@@ -1333,118 +1321,6 @@ export default function Map() {
               )}
             </S.CardRow>
           </S.CardSection>
-        <S.CardSection>
-          <S.CardRow>
-            {isSearching ? (
-              <S.InfoCard $isInteractive={false}>
-                <S.CardInfo>주변 정보를 불러오는 중입니다...</S.CardInfo>
-              </S.InfoCard>
-            ) : searchError ? (
-              <S.InfoCard $isInteractive={false}>
-                <S.CardInfo>{searchError}</S.CardInfo>
-              </S.InfoCard>
-            ) : places.length === 0 ? (
-              <S.InfoCard $isInteractive={false}>
-                <S.CardInfo>주변에 표시할 지점이 없습니다.</S.CardInfo>
-              </S.InfoCard>
-            ) : (
-              places.map((place) => {
-                const bankWebsite = getBankWebsite(place.bankName || place.place_name);
-                return (
-                  <S.InfoCard
-                    key={place.id}
-                    $isActive={selectedPlace?.id === place.id}
-                    $isInteractive
-                    onClick={() => handleCardClick(place)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        handleCardClick(place);
-                        event.preventDefault();
-                      }
-                    }}
-                  >
-                    <S.CardContent>
-                      <S.CardTextContent>
-                    <S.CardTitle>{place.place_name}</S.CardTitle>
-                        {(() => {
-                          const isSpecialize = place.isSpecialize;
-                          const hasHours = place.category_group_code === "AT4" || 
-                            (place.place_name || "").toLowerCase().includes("atm") ||
-                            (isSpecialize && (place.weekClose || place.weekendClose));
-                          const hasAddress = !!(place.road_address_name || place.address_name);
-                          const hasPhoneOrWebsite = !!(place.phone || bankWebsite);
-                          // 구분선이 필요한 경우: 다음 항목이 있을 때 (전화번호나 웹사이트)
-                          const needsDivider = hasPhoneOrWebsite;
-                          
-                          // 운영시간 포맷팅 (HH:MM:SS -> HH:MM)
-                          const formatTime = (time) => {
-                            if (!time) return null;
-                            const parts = time.split(':');
-                            if (parts.length >= 2) {
-                              return `${parts[0]}:${parts[1]}`;
-                            }
-                            return time;
-                          };
-                          
-                          return (
-                            <>
-                              <S.CardInfo 
-                                $hasDivider={
-                                  hasAddress && !hasHours && needsDivider
-                                }
-                              >
-                                {place.road_address_name || place.address_name}
-                              </S.CardInfo>
-                              {hasHours && (
-                                <S.CardInfoWithIcon 
-                                  $hasDivider={hasHours && needsDivider}
-                                  $isTimeIcon
-                                >
-                                  <TimeIcon />
-                                  <S.CardHoursText>
-                                    {isSpecialize && (place.weekClose || place.weekendClose) ? (
-                                      <span>
-                                        {place.weekClose && (
-                                          <span>평일 {formatTime(place.weekClose)} 종료</span>
-                                        )}
-                                        {place.weekClose && place.weekendClose && <span> / </span>}
-                                        {place.weekendClose && (
-                                          <span>주말 {formatTime(place.weekendClose)} 종료</span>
-                                        )}
-                                      </span>
-                                    ) : (
-                                      <S.CardOpenStatus>Open</S.CardOpenStatus>
-                                    )}
-                                  </S.CardHoursText>
-                                </S.CardInfoWithIcon>
-                              )}
-                            </>
-                          );
-                        })()}
-                        {place.phone && (
-                          <S.CardInfoWithIcon>
-                            <CallIcon />
-                            <span>{place.phone}</span>
-                          </S.CardInfoWithIcon>
-                        )}
-                        {bankWebsite && (
-                          <S.CardInfoWithIcon>
-                            <GlobeIcon />
-                            <S.CardLink href={bankWebsite} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                              Find a branch
-                    </S.CardLink>
-                          </S.CardInfoWithIcon>
-                        )}
-                      </S.CardTextContent>
-                    </S.CardContent>
-                  </S.InfoCard>
-                );
-              })
-            )}
-          </S.CardRow>
-        </S.CardSection>
         )}
         {selectedPlace && (
           <S.DetailSheet
@@ -1468,7 +1344,6 @@ export default function Map() {
               <S.DetailHeaderContent>
                 {getBankLogo(selectedPlace.bankName || selectedPlace.place_name) && (
                   <S.DetailBankLogo
-                    src={getBankLogo(selectedPlace.place_name)}
                     src={getBankLogo(selectedPlace.bankName || selectedPlace.place_name)} 
                     alt={selectedPlace.place_name}
                     onError={(e) => {
@@ -1488,17 +1363,6 @@ export default function Map() {
                 </S.DetailIcon>
                 <span>{selectedPlace.road_address_name || selectedPlace.address_name}</span>
               </S.DetailRow>
-              {(selectedPlace.category_group_code === "AT4" ||
-                (selectedPlace.place_name || "").toLowerCase().includes("atm")) && (
-                <S.DetailRow>
-                  <S.DetailIcon aria-hidden>
-                    <TimeIcon />
-                  </S.DetailIcon>
-                  <S.DetailHoursText>
-                    <S.DetailOpenStatus>Open</S.DetailOpenStatus>
-                  </S.DetailHoursText>
-                </S.DetailRow>
-              )}
               {(() => {
                 const isSpecialize = selectedPlace.isSpecialize;
                 const hasHours = selectedPlace.category_group_code === "AT4" || 
@@ -1507,7 +1371,6 @@ export default function Map() {
                 
                 if (!hasHours) return null;
                 
-                // 운영시간 포맷팅 (HH:MM:SS -> HH:MM)
                 const formatTime = (time) => {
                   if (!time) return null;
                   const parts = time.split(':');
@@ -1554,11 +1417,10 @@ export default function Map() {
                     <GlobeIcon />
                   </S.DetailIcon>
                   <S.DetailLink
-                    href={getBankWebsite(selectedPlace.place_name)}
+                    href={getBankWebsite(selectedPlace.bankName || selectedPlace.place_name)}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                  <S.DetailLink href={getBankWebsite(selectedPlace.bankName || selectedPlace.place_name)} target="_blank" rel="noopener noreferrer">
                     Find a branch
                   </S.DetailLink>
                 </S.DetailRow>
