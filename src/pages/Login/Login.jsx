@@ -106,6 +106,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 value={password}
                 type="password"
+                autocomplete="current-password"
               />
             </div>
             <S.Btn $isLogin={true} type="submit">
