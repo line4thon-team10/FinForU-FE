@@ -5,6 +5,7 @@ import Navigation from "../../components/Navigation/Navigation";
 import { useHeaderStore } from "../../stores/headerStore";
 import api from "../../api/api";
 import * as S from "./GuideStyle";
+import { helmetTitle } from "../../constants/title";
 
 const fetchGuideMain = async () => {
   const response = await api.get("/api/guide");
@@ -163,6 +164,7 @@ export default function Guide() {
 
   return (
     <>
+      <title>{`Guide${helmetTitle}`}</title>
       <S.Container>
         <S.ChatArea ref={chatAreaRef}>
           <S.WelcomeMessage>

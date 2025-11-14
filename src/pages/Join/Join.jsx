@@ -11,6 +11,8 @@ import { LANG_MAP } from "../../constants/languageMap";
 import api from "../../api/api";
 import Loading from "./Loading/Loading";
 import Complete from "./Loading/Complete";
+import { helmetTitle } from "../../constants/title";
+import { useFCMTokenRegistration } from "../../hooks/useFCMTokenRegistration";
 
 const TOTAL_STEPS = 3;
 
@@ -30,9 +32,12 @@ export default function Join() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
-
   // 유효성 검사가 Next 클릭으로 인해 실행되었는지 여부
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSignupSuccess, setIsSignupSuccess] = useState(false);
+
+  // 회원가입 성공한 경우에 토큰 로직 호출
+  useFCMTokenRegistration(formData.notify && isSignupSuccess, null);
 
   // 현재 스텝의 유효성 상태 계산
   const isCurrentStepValid = useMemo(() => {
@@ -147,6 +152,7 @@ export default function Join() {
 
       // 회원가입 성공
       if (res.status === 200) {
+        setIsSignupSuccess(true);
         setIsLoading(false);
         setIsCompleted(true);
       }
@@ -188,20 +194,23 @@ export default function Join() {
   }
 
   return (
-    <S.Container>
-      <S.IndicatorWrapper>
-        <S.Indicator>
-          <S.ProgressBar $percent={Math.min((step / TOTAL_STEPS) * 100, 100)} />
-        </S.Indicator>
-      </S.IndicatorWrapper>
-      <S.Content $step={step}>{renderContent()}</S.Content>
-      <ButtonGroup
-        grayText={t("back")}
-        onGrayClick={handleBack}
-        blueType={step === TOTAL_STEPS ? "submit" : "button"}
-        blueText={t("next")}
-        onBlueClick={step === TOTAL_STEPS ? handleSubmit : handleNext}
-      />
-    </S.Container>
+    <>
+      <title>{`Join${helmetTitle}`}</title>
+      <S.Container>
+        <S.IndicatorWrapper>
+          <S.Indicator>
+            <S.ProgressBar $percent={Math.min((step / TOTAL_STEPS) * 100, 100)} />
+          </S.Indicator>
+        </S.IndicatorWrapper>
+        <S.Content $step={step}>{renderContent()}</S.Content>
+        <ButtonGroup
+          grayText={t("back")}
+          onGrayClick={handleBack}
+          blueType={step === TOTAL_STEPS ? "submit" : "button"}
+          blueText={t("next")}
+          onBlueClick={step === TOTAL_STEPS ? handleSubmit : handleNext}
+        />
+      </S.Container>
+    </>
   );
 }

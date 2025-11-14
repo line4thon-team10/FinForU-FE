@@ -3,6 +3,7 @@ import { useHeaderStore } from "../../../stores/headerStore";
 import { useTranslation } from "react-i18next";
 import * as S from "./DeleteAccountStyle";
 import DeleteModal from "./DeleteModal/DeleteModal";
+import { helmetTitle } from "../../../constants/title";
 
 export default function DeleteAccount() {
   const { t, i18n } = useTranslation();
@@ -20,28 +21,31 @@ export default function DeleteAccount() {
   const openModal = useCallback(() => setIsModalOpen(true), []);
   const closeModal = useCallback(() => setIsModalOpen(false), []);
   return (
-    <S.Container>
-      {isModalOpen && <DeleteModal onClose={closeModal} />}
-      <S.Title>{t("settings.deleteDesc")}</S.Title>
-      <S.TextBoxWrapper>
-        <S.TextBox>
-          <S.Title>{t("settings.1title")}</S.Title>
-          <S.Text>{t("settings.1desc")}</S.Text>
-        </S.TextBox>
-        <S.TextBox>
-          <S.Title>{t("settings.2title")}</S.Title>
-          <S.Text>{t("settings.2desc")}</S.Text>
-        </S.TextBox>
-        <S.TextBox>
-          <S.Title>{t("settings.3title")}</S.Title>
-          <S.Text>{t("settings.3desc")}</S.Text>
-        </S.TextBox>
-      </S.TextBoxWrapper>
-      <S.ButtonWrapper>
-        <button type="button" onClick={openModal}>
-          {t("delete")}
-        </button>
-      </S.ButtonWrapper>
-    </S.Container>
+    <>
+      <title>{`Delete Account${helmetTitle}`}</title>
+      <S.Container>
+        {isModalOpen && <DeleteModal onClose={closeModal} />}
+        <S.Title>{t("settings.deleteDesc")}</S.Title>
+        <S.TextBoxWrapper>
+          <S.TextBox>
+            <S.Title>{t("settings.1title")}</S.Title>
+            <S.Text>{t("settings.1desc")}</S.Text>
+          </S.TextBox>
+          <S.TextBox>
+            <S.Title>{t("settings.2title")}</S.Title>
+            <S.Text>{t("settings.2desc")}</S.Text>
+          </S.TextBox>
+          <S.TextBox>
+            <S.Title>{t("settings.3title")}</S.Title>
+            <S.Text>{t("settings.3desc")}</S.Text>
+          </S.TextBox>
+        </S.TextBoxWrapper>
+        <S.ButtonWrapper>
+          <button type="button" onClick={openModal}>
+            {t("delete")}
+          </button>
+        </S.ButtonWrapper>
+      </S.Container>
+    </>
   );
 }

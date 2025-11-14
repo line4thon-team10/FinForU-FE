@@ -11,6 +11,8 @@ import ButtonGroup from "../../../components/button-group/ButtonGroup";
 import { useNavigate } from "react-router-dom";
 import api from "../../../api/api";
 import LoadingSpinner from "../../../components/loading-spinner/LoadingSpinner";
+import { helmetTitle } from "../../../constants/title";
+import { requestForToken } from "../../../firebase";
 
 export default function EditInformation() {
   const navigate = useNavigate();
@@ -24,6 +26,7 @@ export default function EditInformation() {
   const [newPassword, setNewPassword] = useState("");
   const [isNotifyOn, setIsNotifyOn] = useState(true);
   const [isLoading, setIsLoading] = useState(true); // 초기 API 호출 시작 시 true
+  const [initialNotifyStatus, setInitialNotifyStatus] = useState(true); // 초기 알림 상태 저장
 
   // 헤더 설정
   const setHeaderConfig = useHeaderStore((state) => state.setHeaderConfig);
@@ -63,7 +66,9 @@ export default function EditInformation() {
           visaExpir: formattedVisaExpir,
           desiredProducts: userData.desiredProductTypes,
         });
-        setIsNotifyOn(userData.notify ?? true);
+        const currentNotify = userData.notify ?? true;
+        setIsNotifyOn(currentNotify);
+        setInitialNotifyStatus(currentNotify);
       } catch (error) {
         alert("Failed to get user information.");
         console.error(error);
@@ -246,9 +251,55 @@ export default function EditInformation() {
         delete newData.desiredProducts; // 기존 필드는 삭제하여 서버 혼동 방지
 
         // 실제 API 호출: PATCH 또는 PUT
-        await api.patch("/api/members/me", newData);
+        const res = await api.patch("/api/members/me", newData);
+        console.log(res);
+        const memberId = formData.memberId || formData.id || formData.member_id;
+
+        // true -> false
+        if (initialNotifyStatus === true && isNotifyOn === false) {
+          console.log("Notification turned OFF. Deactivating FCM token...");
+          try {
+            const fcmToken = await requestForToken();
+            if (fcmToken) {
+              // JWT를 통해 서버에서 사용자 식별
+              const deactivateData = { token: fcmToken };
+              await api.post("/api/push/deactivate", deactivateData);
+              console.log(`FCM Token deactivated successfully.`);
+            }
+          } catch (error) {
+            console.error("Failed to deactivate FCM token:", error);
+          }
+        }
+
+        // false -> true
+        else if (initialNotifyStatus === false && isNotifyOn === true) {
+          console.log("Notification turned ON. Registering FCM token...");
+          try {
+            // 알림 권한 요청 (만약 이전에 거부했다면 다시 요청)
+            if (Notification.permission === "default") {
+              await Notification.requestPermission();
+            }
+
+            if (Notification.permission === "granted") {
+              const fcmToken = await requestForToken();
+              if (fcmToken) {
+                // JWT를 통해 서버에서 사용자 식별
+                const registerData = { token: fcmToken };
+                await api.post("/api/push/register", registerData);
+                console.log(`FCM Token registered successfully.`);
+              } else {
+                console.warn("FCM Token not available, cannot register push notifications.");
+              }
+            } else {
+              console.warn("Cannot register token: Notification permission is denied by user.");
+            }
+          } catch (error) {
+            console.error("Failed to register FCM token:", error);
+          }
+        }
 
         alert("Your changed information has been saved successfully.");
+        setInitialNotifyStatus(isNotifyOn);
         navigate(-1);
       } catch (error) {
         setIsLoading(false);
@@ -271,127 +322,132 @@ export default function EditInformation() {
   };
 
   return (
-    <S.Container>
-      {isLoading && <LoadingSpinner />}
-      <J.Label>
-        {t("join.email")}
-        <J.Input
-          placeholder={t("join.email")}
-          value={formData.email}
-          onChange={(e) => {
-            updateFormData({ email: e.target.value });
-          }}
-        />
-        {isSubmitted && validationErrors.email && (
-          <J.ValidText>{validationErrors.email}</J.ValidText>
-        )}
-      </J.Label>
-      <J.Label>
-        {t("join.password")}
-        <div>
-          <J.PWInput
-            type="password"
-            placeholder={t("join.8DigitNumber")}
-            value={formData.password}
-            onChange={(e) => setNewPassword(e.target.value)}
+    <>
+      <title>{`Edit Information${helmetTitle}`}</title>
+      <S.Container>
+        {isLoading && <LoadingSpinner />}
+        <J.Label>
+          {t("join.email")}
+          <J.Input
+            placeholder={t("join.email")}
+            value={formData.email}
+            onChange={(e) => {
+              updateFormData({ email: e.target.value });
+            }}
           />
-          <J.PWAgainInput
-            type="password"
-            placeholder={t("join.passwordAgain")}
-            value={passwordAgain}
-            onChange={(e) => setPasswordAgain(e.target.value)}
+          {isSubmitted && validationErrors.email && (
+            <J.ValidText>{validationErrors.email}</J.ValidText>
+          )}
+        </J.Label>
+        <J.Label>
+          {t("join.password")}
+          <div>
+            <J.PWInput
+              type="password"
+              placeholder={t("join.8Characters")}
+              value={formData.password}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <J.PWAgainInput
+              type="password"
+              placeholder={t("join.passwordAgain")}
+              value={passwordAgain}
+              onChange={(e) => setPasswordAgain(e.target.value)}
+            />
+          </div>
+          {isSubmitted && (validationErrors.newPassword || validationErrors.passwordAgain) && (
+            <J.ValidText>
+              {validationErrors.newPassword || validationErrors.passwordAgain}
+            </J.ValidText>
+          )}
+        </J.Label>
+        <J.Label>
+          {t("join.name")}
+          <J.Input
+            placeholder="KimMutsa"
+            value={formData.name}
+            onChange={(e) => updateFormData({ name: e.target.value })}
           />
-        </div>
-        {isSubmitted && (validationErrors.newPassword || validationErrors.passwordAgain) && (
-          <J.ValidText>
-            {validationErrors.newPassword || validationErrors.passwordAgain}
-          </J.ValidText>
-        )}
-      </J.Label>
-      <J.Label>
-        {t("join.name")}
-        <J.Input
-          placeholder="KimMutsa"
-          value={formData.name}
-          onChange={(e) => updateFormData({ name: e.target.value })}
+          {isSubmitted && validationErrors.name && (
+            <J.ValidText>{validationErrors.name}</J.ValidText>
+          )}
+        </J.Label>
+        <J.Label>
+          {t("join.nationality")}
+          <Dropdown
+            name={nationalityName}
+            placeholder={t("pleaseSelect")}
+            itemArray={nationalityArray}
+            onSelect={(name, value) => handleDropdownChange("nationality", value)}
+            selectedValue={formData.nationality}
+          />
+          {isSubmitted && validationErrors.nationality && (
+            <J.ValidText>{validationErrors.nationality}</J.ValidText>
+          )}
+        </J.Label>
+        <J.Label>
+          {t("settings.language")}
+          <Dropdown
+            name={languageName}
+            placeholder={t("pleaseSelect")}
+            itemArray={languageArray}
+            onSelect={(name, value) => handleDropdownChange("language", value)}
+            selectedValue={formData.language}
+          />
+        </J.Label>
+        <J.Label>
+          {t("join.visaType")}
+          <Dropdown
+            name={visaTypeName}
+            itemArray={visaTypeArray}
+            onSelect={handleDropdownChange}
+            selectedValue={formData.visaType}
+          />
+          {isSubmitted && validationErrors.visaType && (
+            <J.ValidText>{validationErrors.visaType}</J.ValidText>
+          )}
+        </J.Label>
+        <J.Label>
+          {t("join.visaExpirationDate")}
+          <J.Input
+            placeholder="MM/DD/YYYY"
+            value={formData.visaExpir || ""}
+            onChange={(e) => updateFormData({ visaExpir: e.target.value })}
+          />
+          {isSubmitted && validationErrors.visaExpir && (
+            <J.ValidText>{validationErrors.visaExpir}</J.ValidText>
+          )}
+        </J.Label>
+        <J.Label>
+          <MultiSelectHeader header={t("join.desiredProductType")} />
+          <S.ButtonWrapper>
+            {desireProductsArray.map((product) => (
+              <S.Button
+                key={product.value}
+                onClick={() => handleProductSelect(product)}
+                $selected={(formData.desiredProducts || []).includes(product.value)}
+              >
+                {product.label}
+              </S.Button>
+            ))}
+          </S.ButtonWrapper>
+          {isSubmitted && validationErrors.desiredProducts && (
+            <J.ValidText>{validationErrors.desiredProducts}</J.ValidText>
+          )}
+        </J.Label>
+        <J.Label>
+          {t("join.notificationSettings")}
+          <J.ToggleWrapper>
+            <div>{t("settings.pushNoti")}</div>
+            <ToggleSwitch name="notify" initialValue={isNotifyOn} onChange={handleNotifyToggle} />
+          </J.ToggleWrapper>
+        </J.Label>
+        <ButtonGroup
+          onGrayClick={() => navigate(-1)}
+          onBlueClick={handleSave}
+          blueDisabled={isLoading}
         />
-        {isSubmitted && validationErrors.name && <J.ValidText>{validationErrors.name}</J.ValidText>}
-      </J.Label>
-      <J.Label>
-        {t("join.nationality")}
-        <Dropdown
-          name={nationalityName}
-          placeholder={t("pleaseSelect")}
-          itemArray={nationalityArray}
-          onSelect={(name, value) => handleDropdownChange("nationality", value)}
-          selectedValue={formData.nationality}
-        />
-        {isSubmitted && validationErrors.nationality && (
-          <J.ValidText>{validationErrors.nationality}</J.ValidText>
-        )}
-      </J.Label>
-      <J.Label>
-        {t("settings.language")}
-        <Dropdown
-          name={languageName}
-          placeholder={t("pleaseSelect")}
-          itemArray={languageArray}
-          onSelect={(name, value) => handleDropdownChange("language", value)}
-          selectedValue={formData.language}
-        />
-      </J.Label>
-      <J.Label>
-        {t("join.visaType")}
-        <Dropdown
-          name={visaTypeName}
-          itemArray={visaTypeArray}
-          onSelect={handleDropdownChange}
-          selectedValue={formData.visaType}
-        />
-        {isSubmitted && validationErrors.visaType && (
-          <J.ValidText>{validationErrors.visaType}</J.ValidText>
-        )}
-      </J.Label>
-      <J.Label>
-        {t("join.visaExpirationDate")}
-        <J.Input
-          placeholder="MM/DD/YYYY"
-          value={formData.visaExpir || ""}
-          onChange={(e) => updateFormData({ visaExpir: e.target.value })}
-        />
-        {isSubmitted && validationErrors.visaExpir && (
-          <J.ValidText>{validationErrors.visaExpir}</J.ValidText>
-        )}
-      </J.Label>
-      <J.Label>
-        <MultiSelectHeader header={t("join.desiredProductType")} />
-        <S.ButtonWrapper>
-          {desireProductsArray.map((product) => (
-            <S.Button
-              key={product.value}
-              onClick={() => handleProductSelect(product)}
-              $selected={(formData.desiredProducts || []).includes(product.value)}
-            >
-              {product.label}
-            </S.Button>
-          ))}
-        </S.ButtonWrapper>
-        {isSubmitted && validationErrors.desiredProducts && (
-          <J.ValidText>{validationErrors.desiredProducts}</J.ValidText>
-        )}
-      </J.Label>
-      <J.Label>
-        {t("join.notificationSettings")}
-        <J.ToggleWrapper>
-          <div>{t("settings.pushNoti")}</div>
-          <ToggleSwitch name="notify" initialValue={isNotifyOn} onChange={handleNotifyToggle} />
-        </J.ToggleWrapper>
-      </J.Label>
-      <ButtonGroup
-        onGrayClick={() => navigate(-1)}
-        onBlueClick={handleSave}
-        blueDisabled={isLoading}
-      />
-    </S.Container>
+      </S.Container>
+    </>
   );
 }
